@@ -268,6 +268,22 @@
   document.getElementById('testGithubConfig').addEventListener('click', testGithubConfig);
   document.getElementById('downloadProductsJson').addEventListener('click', downloadProducts);
 
+  
+  // === Ireland phone normalization: returns digits-only in E.164 without '+' (e.g., 353871234567) ===
+  function normalizeIEPhone(v){
+    let d = String(v||'').replace(/\D+/g,'');
+    if(!d) return '';
+    // 00353 -> 353
+    if(d.startsWith('00353')){ d = '353' + d.slice(5); }
+    // 0XXXXXXXXX -> 353XXXXXXXX
+    if(d.startsWith('0')){ d = '353' + d.slice(1); }
+    // 3530XXXXXXXX -> 353XXXXXXXX
+    if(d.startsWith('3530')){ d = '353' + d.slice(4); }
+    // Trim to 15 digits max
+    if(d.length > 15) d = d.slice(0,15);
+    return d;
+  }
+
   // ===== Produtos CRUD (com WhatsApp) =====
   let produtos = [];
   function renderProdutos(){
@@ -360,7 +376,8 @@
     const departamento = document.getElementById('departamento').value;
     const regiao = document.getElementById('regiao').value;
     const estoque = parseInt(document.getElementById('estoque').value || '0', 10);
-    const whatsapp = (document.getElementById('whatsapp').value || '').replace(/\D+/g,'');
+    let whatsapp = normalizeIEPhone(document.getElementById('whatsapp').value || '');
+    if(!whatsapp || whatsapp.length < 11){ alert('Número inválido. Use +353871234567 ou 0871234567'); return; }
     const county = document.getElementById('county').value;
     let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
     const region = document.getElementById('regiao').value;
