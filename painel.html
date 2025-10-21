@@ -3,131 +3,189 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Painel Brazucas</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<title>Painel — Brazucas</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;800;900&display=swap" rel="stylesheet"/>
 <style>
-    :root {
-  --cream:#f3eadf;
-  --pill-1:#f6c34a;
-  --pill-2:#f29278;
-  --shadow: rgba(0,0,0,.14);
-  --card:#1a1a1a;
-  --muted:#6b635a;
-  --white:#ffffff;
-  --ink:#2b2b2b;
-  --green:#28a745;
-}
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background: var(--cream); color: var(--ink); padding: 20px; }
-    h1 { text-align: center; margin-bottom: 20px; color: var(--ink); }
-    .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; }
-    .form-section, .list-section {
-      flex: 1; background: var(--white); padding: 20px; border-radius: 12px; border:1px solid #e5dfd7;
-      box-shadow: 0 10px 20px var(--shadow);
-    }
-    .form { display: flex; flex-direction: column; gap: 12px; }
-    input, textarea, select { padding: 12px; border-radius: 10px; border: 1px solid #e5dfd7; font-size: 14px; background:#fff; }
-    textarea { min-height: 80px; resize: vertical; }
-    .upload-btn { display: inline-block; padding: 12px; border-radius: 9999px; background: linear-gradient(135deg,var(--pill-1),var(--pill-2)); color: #3a2a21; text-align: center; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow:0 6px 14px var(--shadow), inset 0 -2px 0 rgba(0,0,0,.12);}
-    .upload-btn:hover { filter: brightness(1.08); }
-    #fotos { display: none; }
-    button { background: linear-gradient(135deg,var(--pill-1),var(--pill-2)); border: none; padding: 12px 16px; border-radius: 9999px; cursor: pointer; color:#3a2a21; font-weight: 800; transition: 0.2s; font-size: 15px; box-shadow:0 6px 14px var(--shadow), inset 0 -2px 0 rgba(0,0,0,.15);}
-    button:hover { filter: brightness(1.1); }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table th, table td { border: 1px solid #e5dfd7; padding: 10px; text-align: left; }
-    table th { background: #f9f4ed; }
-    .preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-    .preview { position: relative; }
-    .preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; }
-    .preview input[type="radio"] { position: absolute; top: 4px; left: 4px; transform: scale(1.2); }
-    .alert { margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; display: none; }
-    .alert.success { background: var(--green); color: white; }
-    .config-btn { display:block; margin:0 auto 20px; background: linear-gradient(135deg,var(--pill-1),var(--pill-2)); border:none; color:#3a2a1f; padding:10px 16px; border-radius:9999px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:0 6px 14px var(--shadow);}
-    .modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:3000;}
-    .modal.show{display:flex !important;}
-    .modal-content{background:#fff; padding:20px; border-radius:12px; max-width:460px; width:92%; color:#2b2b2b; position:relative; border:1px solid #e5dfd7;}
-    .action-buttons { display:flex; gap:6px; }
-    .action-buttons button { flex:1; }
-
-    .logo-small{width:64px;height:auto;display:block;margin:0 auto 20px; border-radius:8px;}
+  :root{
+    --cream:#f3eadf;
+    --pill-1:#f6c34a;
+    --pill-2:#f29278;
+    --shadow: rgba(0,0,0,.14);
+    --white:#ffffff;
+    --ink:#2b2b2b;
+    --muted:#6b635a;
+    --card:#ffffff;
+    --border:#e5dfd7;
+    --danger:#ff3c00;
+    --success:#28a745;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--cream); color:var(--ink); font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; padding:20px;}
+  .logo-small{width:56px;height:auto;display:block;margin:0 auto 18px;border-radius:8px}
+  h1{line-height:0; text-align:center; margin:0 0 10px}
+  .config-btn{display:block;margin:0 auto 18px; background:linear-gradient(135deg,var(--pill-1),var(--pill-2)); border:none; color:#3a2a21; padding:10px 16px; border-radius:9999px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:0 6px 14px var(--shadow)}
+  .container{display:flex; gap:20px; max-width:1200px; margin:0 auto;}
+  .card{flex:1; background:var(--card); padding:20px; border-radius:12px; border:1px solid var(--border); box-shadow:0 10px 20px var(--shadow);}
+  .form{display:flex; flex-direction:column; gap:12px}
+  input, textarea, select{padding:12px; border-radius:10px; border:1px solid var(--border); font-size:14px; background:#fff}
+  textarea{min-height:80px; resize:vertical}
+  label{font-size:12px; color:var(--muted)}
+  .upload-btn{ display:inline-block; padding:12px; border-radius:9999px; background:linear-gradient(135deg,var(--pill-1),var(--pill-2)); color:#3a2a21; text-align:center; font-weight:800; cursor:pointer; transition:.2s; box-shadow:0 6px 14px var(--shadow), inset 0 -2px 0 rgba(0,0,0,.12) }
+  .upload-btn:hover{ filter:brightness(1.05) }
+  #fotos{ display:none }
+  button.action{ background:linear-gradient(135deg,var(--pill-1),var(--pill-2)); border:none; padding:12px 16px; border-radius:9999px; cursor:pointer; color:#3a2a21; font-weight:800; font-size:15px; box-shadow:0 6px 14px var(--shadow), inset 0 -2px 0 rgba(0,0,0,.15) }
+  table{width:100%; border-collapse:collapse; margin-top:14px}
+  th, td{border:1px solid var(--border); padding:10px; text-align:left; font-size:14px}
+  th{background:#f9f4ed}
+  .preview-container{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px}
+  .preview{position:relative}
+  .preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+  .preview input[type="radio"]{position:absolute;top:4px;left:4px;transform:scale(1.2)}
+  .alert{margin-top:10px;padding:10px;border-radius:6px;text-align:center;display:none}
+  .alert.success{background:var(--success);color:#fff}
+  /* Modal */
+  .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); justify-content:center; align-items:center; z-index:9999}
+  .modal.show{display:flex !important}
+  .modal-content{background:var(--cream); color:var(--ink); padding:20px; border-radius:12px; width:min(92vw,480px); border:1px solid var(--border); position:relative; box-shadow:0 14px 30px var(--shadow);}
+  .modal-close{position:absolute; top:10px; right:10px; background:#ff3c00; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:800}
+  .gh-grid{display:grid; grid-template-columns:1fr; gap:8px}
+  .gh-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:6px}
 </style>
 </head>
 <body>
-<h1 style="line-height:0;"><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
+  <h1><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
+  <button class="config-btn" id="openGithubModal" onclick="openGh()">Configurações</button>
 
-<button class="config-btn" id="openGithubModal" type="button">Configurações</button>
-<div class="container">
-  <div class="form-section">
-    <form class="form" id="formProduto">
-      <input id="titulo" placeholder="Título do produto" required type="text"/>
-      <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
-      <textarea id="descricao" placeholder="Descrição do produto"></textarea>
-      <label>Departamento</label>
-      <select id="departamento" required>
-        <option value="">Selecione...</option>
-        <option value="marketplace">Marketplace</option>
-        <option value="servicos">Serviços e Comércios</option>
-        <option value="eventos">Eventos</option>
-      </select>
-      <label>Estoque</label>
-      <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
-      <label>WhatsApp do dono (somente números, com DDI)</label>
-      <input id="whatsapp" placeholder="Ex: 353899999999" type="tel" inputmode="numeric" pattern="\d*"/>
-      <small style="color:var(--muted);margin-top:-6px;">Será usado no botão do produto para abrir conversa no WhatsApp.</small>
-      <label class="upload-btn" for="fotos">📷 Adicionar Imagens</label>
-      <input accept="image/*" id="fotos" multiple type="file"/>
-      <div class="preview-container" id="preview"></div>
-      <button type="submit">Adicionar Produto</button>
-      <div class="alert success" id="alertBox">✅ Produto salvo com sucesso no GitHub!</div>
-    </form>
-  </div>
-  <div class="list-section">
-    <h2>Itens Cadastrados</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Valor (€)</th>
-          <th>Departamento</th>
-          <th>Estoque</th>
-          <th>Data</th><th>WhatsApp</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="listaProdutos"></tbody>
-    </table>
-  </div>
-</div>
+  <div class="container">
+    <div class="card">
+      <form class="form" id="formProduto">
+        <input id="titulo" placeholder="Título do produto" required type="text"/>
+        <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
+        <textarea id="descricao" placeholder="Descrição do produto"></textarea>
+        <label>Departamento</label>
+        <select id="departamento" required>
+          <option value="">Selecione...</option>
+          <option value="marketplace">Marketplace</option>
+          <option value="servicos">Serviços e Comércios</option>
+          <option value="eventos">Eventos</option>
+        </select>
+        <label>Estoque</label>
+        <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
+        <label>WhatsApp do dono (somente números, com DDI)</label>
+        <input id="whatsapp" placeholder="Ex: 353899999999" type="tel" inputmode="numeric" pattern="\\d*"/>
+        <small style="color:var(--muted);margin-top:-6px;">Usado para abrir conversa no WhatsApp a partir do modal do produto.</small>
+        <div class="region-row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="gh-row">
+            <label>Condado (County)</label>
+            <select id="county" required>
+              <option value="">Selecione o condado…</option>
+            </select>
+          </div>
+          <div class="gh-row">
+            <label>Cidade / Área</label>
+            <select id="city" required disabled>
+              <option value="">Selecione uma cidade…</option>
+            </select>
+            <input id="cityCustom" type="text" placeholder="Digite a cidade" style="display:none; padding:12px; border:1px solid var(--border); border-radius:10px;" />
+          </div>
+        </div>
 
-<!-- GitHub Config Modal -->
-<div class="modal" id="githubModal">
-  <div class="modal-content">
-    <button id="closeGithubModal" type="button" style="position:absolute; top:10px; right:10px; background:#ff3c00; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;">X</button>
-    <h2 style="margin-bottom:14px; color:var(--orange);">Configuração GitHub</h2>
-    <label>Repository (owner/repo)</label>
-    <input id="ghRepo" placeholder="ex: usuario/repositorio" style="width:100%; margin-bottom:10px;" type="text" value=""/>
-    <label>Branch</label>
-    <input id="ghBranch" value="main"/>
-    <label>File Path</label>
-    <input id="ghPath" value="products.json"/>
-    <label>Personal Access Token</label>
-    <input id="ghToken" placeholder="ghp_xxx" style="width:100%; margin-bottom:16px;" type="password"/>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button id="saveGithubConfig" type="button">Salvar</button>
-      <button id="testGithubConfig" type="button">Testar conexão</button>
-      <button id="downloadProductsJson" type="button">Baixar products.json</button>
+<label class="upload-btn" for="fotos">📷 Adicionar Imagens</label>
+        <input accept="image/*" id="fotos" multiple type="file"/>
+        <div class="preview-container" id="preview"></div>
+
+        <button type="submit" class="action">Adicionar Produto</button>
+        <div class="alert success" id="alertBox">✅ Produto salvo com sucesso no GitHub!</div>
+      </form>
     </div>
-    <div id="ghAlert" style="margin-top:10px; display:none; padding:8px; border-radius:6px; text-align:center;"></div>
+
+    <div class="card">
+      <h2 style="margin:0 0 10px">Itens Cadastrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Valor (€)</th>
+            <th>Departamento</th>
+            <th>Estoque</th>
+            <th>Data</th>
+            <th>Condado</th>
+            <th>Cidade</th>
+            <th>WhatsApp</th>
+            <th>Região</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="listaProdutos"></tbody>
+      </table>
+    </div>
   </div>
-</div>
+
+  <!-- Modal GitHub -->
+  <div class="modal" id="githubModal" aria-hidden="true">
+    <div class="modal-content">
+      <button class="modal-close" id="closeGithubModal" onclick="closeGh()" style="background:#ff3c00;color:#fff">X</button>
+      <h2 style="margin:0 0 10px; color:#f6c34a">Configuração GitHub</h2>
+      <div class="gh-grid"><style>
+    .modal-content{background:var(--cream); color:var(--ink); padding:20px; border-radius:12px; width:min(92vw,480px); border:1px solid var(--border); position:relative; box-shadow:0 14px 30px var(--shadow);}
+    .modal-content h2{color:#2b2b2b; font-weight:900; margin:0 0 12px}
+    .gh-grid{display:flex; flex-direction:column; gap:10px}
+    .gh-row{display:flex; flex-direction:column; gap:6px}
+    .modal-content label{color:#6b635a; font-size:13px}
+    .modal-content input{background:#fff; color:#222; border:1px solid var(--border); border-radius:10px; padding:12px; width:100%}
+    .gh-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
+    .gh-actions .action{background:linear-gradient(135deg,var(--pill-1),var(--pill-2)) !important; color:#3a2a21 !important; border-radius:9999px !important; box-shadow:0 6px 14px var(--shadow), inset 0 -2px 0 rgba(0,0,0,.12); padding:10px 14px}
+    .modal-close{background:#ff3c00 !important; color:#fff !important}
+    </style>
+        <div class="gh-row">
+          <label>Repository (owner/repo)</label>
+          <input id="ghRepo" placeholder="ex: usuario/repositorio" type="text" style="background:#fff;color:#000;border:1px solid #333;border-radius:10px;padding:12px;width:100%"/>
+        </div>
+        <div class="gh-row">
+          <label>Branch</label>
+          <input id="ghBranch" placeholder="main" type="text" value="main" style="background:#fff;color:#000;border:1px solid #333;border-radius:10px;padding:12px;width:100%"/>
+        </div>
+        <div class="gh-row">
+          <label>File Path</label>
+          <input id="ghPath" placeholder="products.json" type="text" value="products.json" style="background:#fff;color:#000;border:1px solid #333;border-radius:10px;padding:12px;width:100%"/>
+        </div>
+        <div class="gh-row">
+          <label>Personal Access Token</label>
+          <input id="ghToken" placeholder="ghp_xxx" type="password" style="background:#fff;color:#000;border:1px solid #333;border-radius:10px;padding:12px;width:100%"/>
+        </div>
+      </div>
+      <div class="gh-actions">
+        <button id="saveGithubConfig" class="action">Salvar</button>
+        <button id="testGithubConfig" class="action">Testar conexão</button>
+        <button id="downloadProductsJson" class="action">Baixar products.json</button>
+      </div>
+      <div id="ghAlert" class="alert" style="display:none"></div>
+    </div>
+  </div>
 
 <script>
-  let produtos = [];
-
-  // ===== Helpers UTF-8/Base64 seguros =====
+(function(){
+  // ===== Utils =====
+  function showGhAlert(msg, success){
+    const el = document.getElementById('ghAlert');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.background = success ? '#28a745' : '#c0392b';
+    el.style.color = '#fff';
+  }
+  function encodeBase64Utf8(str){
+    try{
+      if('TextEncoder' in window){
+        const bytes = new TextEncoder().encode(str);
+        let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
+        return btoa(bin);
+      }
+      return btoa(unescape(encodeURIComponent(str)));
+    }catch(e){ return btoa(str||''); }
+  }
   function decodeBase64Utf8(b64){
     try{
-      b64 = (b64 || '').replace(/\n/g,'');
+      b64 = (b64||'').replace(/\\n/g,'');
       if('TextDecoder' in window){
         const bin = atob(b64);
         const bytes = new Uint8Array(bin.length);
@@ -135,78 +193,122 @@
         return new TextDecoder().decode(bytes);
       }
       return decodeURIComponent(escape(atob(b64)));
-    }catch(e){ console.error('decodeBase64Utf8 error', e); return atob(b64 || ''); }
+    }catch(e){ return atob(b64||''); }
   }
-  function encodeBase64Utf8(str){
+
+  // ===== Modal open/close — rock solid =====
+  window.openGh = function(){
+    try{ loadGithubConfig(); }catch(e){}
+    const m = document.getElementById('githubModal');
+    if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+  };
+  window.closeGh = function(){
+    const m = document.getElementById('githubModal');
+    if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+  };
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeGh(); });
+  const modalEl = document.getElementById('githubModal');
+  modalEl.addEventListener('click', (e)=>{ if(e.target===modalEl) closeGh(); });
+
+  // ===== GitHub Config =====
+  function ghGet(){ try{ return JSON.parse(localStorage.getItem('ghConfig')||'{}'); }catch(e){ return {}; } }
+  function ghSet(cfg){ localStorage.setItem('ghConfig', JSON.stringify(cfg)); }
+  function readModalCfg(){
+    return {
+      repo: (document.getElementById('ghRepo')?.value||'').trim(),
+      branch: (document.getElementById('ghBranch')?.value||'main').trim() || 'main',
+      path: (document.getElementById('ghPath')?.value||'products.json').trim() || 'products.json',
+      token: (document.getElementById('ghToken')?.value||'')
+    };
+  }
+  function loadGithubConfig(){
+    const cfg = ghGet();
+    if(cfg.repo) document.getElementById('ghRepo').value = cfg.repo;
+    if(cfg.branch) document.getElementById('ghBranch').value = cfg.branch;
+    if(cfg.path) document.getElementById('ghPath').value = cfg.path;
+    if(cfg.token) document.getElementById('ghToken').value = cfg.token;
+  }
+  async function testGithubConfig(){
+    const cfgLS = ghGet();
+    const m = readModalCfg();
+    const cfg = { repo:m.repo||cfgLS.repo, branch:m.branch||cfgLS.branch||'main', path:m.path||cfgLS.path||'products.json', token:m.token||cfgLS.token };
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de testar.', false); return; }
     try{
-      if('TextEncoder' in window){
-        const bytes = new TextEncoder().encode(str);
-        let bin = '';
-        bytes.forEach(b => bin += String.fromCharCode(b));
-        return btoa(bin);
-      }
-      return btoa(unescape(encodeURIComponent(str)));
-    }catch(e){ console.error('encodeBase64Utf8 error', e); return btoa(str || ''); }
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, { headers: { Authorization: `token ${cfg.token}` } });
+      if(res.ok){ showGhAlert('✅ Conexão bem-sucedida!', true); } else { showGhAlert('❌ Erro: ' + res.status, false); }
+    }catch(e){ showGhAlert('❌ Falha: ' + e.message, false); }
+  }
+  async function downloadProducts(){
+    const cfgLS = ghGet();
+    const m = readModalCfg();
+    const cfg = { repo:m.repo||cfgLS.repo, branch:m.branch||cfgLS.branch||'main', path:m.path||cfgLS.path||'products.json', token:m.token||cfgLS.token };
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de baixar.', false); return; }
+    try{
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, { headers: { Authorization: `token ${cfg.token}` } });
+      if(!res.ok){ showGhAlert('❌ Erro ao baixar: ' + res.status, false); return; }
+      const data = await res.json();
+      if(data && data.content){
+        const blob = new Blob([decodeBase64Utf8(data.content)], {type:'application/json;charset=utf-8'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (cfg.path.split('/').pop() || 'products.json');
+        document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
+        showGhAlert('📥 Download iniciado.', true);
+      } else { showGhAlert('Não foi possível obter o arquivo.', false); }
+    }catch(e){ showGhAlert('❌ Falha: ' + (e.message||e), false); }
+  }
+  function saveGithubConfig(){
+    const cfg = readModalCfg();
+    ghSet(cfg);
+    showGhAlert('Configuração salva!', true);
   }
 
-  // Upload imagens para GitHub e retorna URLs raw
-  async function uploadImagens(produtoId, files){
-    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    const uploadedLinks = [];
-    for(let i=0; i<files.length; i++){
-      const file = files[i];
-      const reader = new FileReader();
-      const base64 = await new Promise(res=>{
-        reader.onload = () => res(reader.result.split(",")[1]);
-        reader.readAsDataURL(file);
-      });
-      const imgPath = `products/${produtoId}/${file.name}`;
-      const url = `https://api.github.com/repos/${cfg.repo}/contents/${imgPath}`;
-      await fetch(url, {
-        method: "PUT",
-        headers: { "Authorization": `token ${cfg.token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ message: \`Add image \${file.name} (\${produtoId})\`, branch: cfg.branch, content: base64 })
-      });
-      uploadedLinks.push(\`https://raw.githubusercontent.com/\${cfg.repo}/\${cfg.branch}/\${imgPath}\`);
-    }
-    return uploadedLinks;
-  }
+  // Wire buttons
+  document.getElementById('saveGithubConfig').addEventListener('click', saveGithubConfig);
+  document.getElementById('testGithubConfig').addEventListener('click', testGithubConfig);
+  document.getElementById('downloadProductsJson').addEventListener('click', downloadProducts);
 
+  // ===== Produtos CRUD (com WhatsApp) =====
+  let produtos = [];
   function renderProdutos(){
     const lista = document.getElementById('listaProdutos');
     lista.innerHTML = '';
-    produtos.forEach((p, i) => {
+    produtos.forEach((p,i)=>{
       const tr = document.createElement('tr');
-      tr.innerHTML = \`
-        <td>\${p.title}</td>
-        <td>€ \${Number(p.price || 0).toFixed(2)}</td>
-        <td>\${p.department || ''}</td>
-        <td>\${p.stock ?? 0}</td>
-        <td>\${new Date(p.createdAt).toLocaleDateString()}</td>
+      tr.innerHTML = `
+        <td>${p.title||''}</td>
+        <td>€ ${(Number(p.price||0)).toFixed(2)}</td>
+        <td>${p.department||''}</td>
+        <td>${p.stock??0}</td>
+        <td>${new Date(p.createdAt||Date.now()).toLocaleDateString()}</td>
+        <td>${p.region||p.regiao||''}</td>
+        <td>${p.county||p.region||p.regiao||''}</td>
+        <td>${p.city||''}</td>
+        <td>${p.whatsapp||''}</td>
+        <td>${p.region||''}</td>
         <td>
-          <div class='action-buttons'>
-            <button onclick="editarProduto(\${i})">Editar</button>
-            <button onclick="excluirProduto(\${i})">Excluir</button>
+          <div style="display:flex;gap:6px;">
+            <button class="action" data-edit="${i}">Editar</button>
+            <button class="action" data-del="${i}">Excluir</button>
           </div>
-        </td>\`;
-      tr.innerHTML = tr.innerHTML.replace('</tr>', `<td>${(p.whatsapp||'')}</td></tr>`); lista.appendChild(tr);
+        </td>`;
+      lista.appendChild(tr);
     });
+    // wire edit/delete
+    lista.querySelectorAll('button[data-edit]').forEach(btn=>btn.onclick=()=>editarProduto(Number(btn.dataset.edit)));
+    lista.querySelectorAll('button[data-del]').forEach(btn=>btn.onclick=()=>excluirProduto(Number(btn.dataset.del)));
   }
 
   async function salvarNoGitHub(list){
-    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){
-      alert("Configuração GitHub incompleta!");
-      return;
-    }
-    const url = \`https://api.github.com/repos/\${cfg.repo}/contents/\${cfg.path}\`;
+    const cfg = ghGet();
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ alert('Configuração GitHub incompleta!'); return; }
+    const url = `https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`;
     let sha = null;
-    try {
-      const res = await fetch(url+\`?ref=\${cfg.branch}\`, { headers: { "Authorization": \`token \${cfg.token}\`, "Accept": "application/vnd.github+json" } });
+    try{
+      const res = await fetch(url+`?ref=${cfg.branch}`,{headers:{Authorization:`token ${cfg.token}`,Accept:'application/vnd.github+json'}});
       if(res.ok){ const data = await res.json(); sha = data.sha; }
-    } catch(e) {}
-
-    const sanitized = (list||[]).map(p => ({
+    }catch(e){}
+    const sanitized = (list||[]).map(p=>({
       id: p.id || String(Date.now()),
       title: p.title ?? 'Sem título',
       description: p.description ?? '',
@@ -215,401 +317,121 @@
       price: Number(p.price || 0),
       stock: Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || '0', 10),
       image: p.image || '',
-      gallery: Array.isArray(p.gallery) ? p.gallery.filter(Boolean) : [],
+      gallery: Array.isArray(p.gallery)? p.gallery.filter(Boolean) : [],
+      whatsapp: p.whatsapp || '',
       createdAt: p.createdAt || Date.now(),
       status: p.status || 'publicado',
-      whatsapp: p.whatsapp || ''
+      county: p.county || '',
+      city: p.city || '',
+      region: p.region || p.regiao || '',
+      region: p.region || ''
     }));
-
-    const body = {
-      message: "Atualizando products.json via Painel Brazucas",
-      branch: cfg.branch,
-      content: encodeBase64Utf8(JSON.stringify(sanitized, null, 2))
-    };
+    const body = { message:"Atualizando products.json via Painel Brazucas", branch:cfg.branch, content: encodeBase64Utf8(JSON.stringify(sanitized,null,2)) };
     if(sha) body.sha = sha;
-
-    const putRes = await fetch(url, {
-      method: "PUT",
-      headers: { "Authorization": \`token \${cfg.token}\`, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+    const putRes = await fetch(url, { method:'PUT', headers:{Authorization:`token ${cfg.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'}, body: JSON.stringify(body)});
     if(putRes.ok){
-      const box = document.getElementById("alertBox");
-      box.innerHTML = "✅ Produto salvo no GitHub!";
-      box.classList.add("success");
-      box.style.display = "block";
-      setTimeout(()=> box.style.display="none", 3000);
+      const box = document.getElementById('alertBox');
+      box.style.display='block'; box.classList.add('success'); box.textContent='✅ Produto salvo no GitHub!';
+      setTimeout(()=> box.style.display='none', 2800);
       await carregarProdutosGitHub();
-
-  // === Robust open/close for GitHub modal ===
-  function openGh(){
-    try{ loadGithubConfig(); }catch(e){}
-    var ghModal = document.getElementById('githubModal');
-    if(ghModal){ ghModal.classList.add('show'); }
-  }
-  function closeGh(){
-    var ghModal = document.getElementById('githubModal');
-    if(ghModal){ ghModal.classList.remove('show'); }
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    var openBtn = document.getElementById('openGithubModal');
-    var closeBtn = document.getElementById('closeGithubModal');
-    var ghModal = document.getElementById('githubModal');
-    if(openBtn){ openBtn.addEventListener('click', openGh); }
-    if(closeBtn){ closeBtn.addEventListener('click', closeGh); }
-    if(ghModal){
-      ghModal.addEventListener('click', function(e){
-        if(e.target === ghModal){ closeGh(); }
-      });
-    }
-  });
-
-
-  // ===== Modal: open/close robust =====
-  function ghModalOpen(){
-    loadGithubConfig();
-    const el = document.getElementById('githubModal');
-    el.classList.add('show');
-    el.style.display='flex';
-  }
-  function ghModalClose(){
-    const el = document.getElementById('githubModal');
-    el.classList.remove('show');
-    el.style.display='none';
-  }
-
-  // Bindings (retry-safe)
-  (function bindGhUI(){
-    const openBtn = document.getElementById('openGithubModal');
-    const closeBtn = document.getElementById('closeGithubModal');
-    const saveBtn = document.getElementById('saveGithubConfig');
-    const testBtn = document.getElementById('testGithubConfig');
-    const dlBtn = document.getElementById('downloadProductsJson');
-    if(openBtn) openBtn.onclick = ghModalOpen;
-    if(closeBtn) closeBtn.onclick = ghModalClose;
-    if(saveBtn) saveBtn.onclick = saveGithubConfig;
-    if(testBtn) testBtn.onclick = testGithubConfig;
-    if(dlBtn) dlBtn.onclick = downloadProducts;
-  })();
-
-
-  // (inline GitHub config removido — usar modal)
-  function ghGet(){ return JSON.parse(localStorage.getItem('ghConfig')||'{}'); }
-  function ghSet(cfg){ localStorage.setItem('ghConfig', JSON.stringify(cfg)); }
-  function ghLoadIntoInputs(){
-    const cfg = ghGet();
-    document.getElementById('ghRepoInline').value = cfg.repo || '';
-    document.getElementById('ghBranchInline').value = cfg.branch || 'main';
-    document.getElementById('ghPathInline').value = cfg.path || 'products.json';
-    document.getElementById('ghTokenInline').value = cfg.token || '';
-  }
-  function ghSaveFromInputs(){
-    const cfg = {
-      repo: document.getElementById('ghRepoInline').value,
-      branch: document.getElementById('ghBranchInline').value || 'main',
-      path: document.getElementById('ghPathInline').value || 'products.json',
-      token: document.getElementById('ghTokenInline').value
-    };
-    ghSet(cfg);
-    showGhAlert('Configuração salva!', true);
-    loadGithubConfig(); // update modal too
-  }
-  async function ghTestFromInputs(){ testGithubConfig(); }
-  async function ghDownloadFromInputs(){ downloadProducts(); }
-
-  
-  
-  
-  
-
     } else {
-      alert("Erro ao salvar no GitHub.");
+      alert('Erro ao salvar no GitHub.');
     }
   }
 
-  // CRUD básico
-  document.getElementById('fotos').addEventListener('change', (e) => {
+  document.getElementById('fotos').addEventListener('change', (e)=>{
     const files = Array.from(e.target.files);
     const preview = document.getElementById('preview');
     preview.innerHTML = '';
-    files.forEach((f, i) => {
+    files.forEach((f,i)=>{
       const url = URL.createObjectURL(f);
       const div = document.createElement('div');
-      div.className = 'preview';
-      div.innerHTML = \`<input type="radio" name="capa" \${i===0? 'checked' : ''} value="\${i}"><img src="\${url}">\`
+      div.className='preview';
+      div.innerHTML = `<input type="radio" name="capa" ${i===0?'checked':''} value="${i}"><img src="${url}">`;
       preview.appendChild(div);
     });
   });
 
-  document.getElementById('formProduto').addEventListener('submit', async (e) => {
+  document.getElementById('formProduto').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const titulo = document.getElementById('titulo').value;
     const valor = Number(document.getElementById('valor').value || 0);
     const descricao = document.getElementById('descricao').value;
     const departamento = document.getElementById('departamento').value;
+    const regiao = document.getElementById('regiao').value;
     const estoque = parseInt(document.getElementById('estoque').value || '0', 10);
     const whatsapp = (document.getElementById('whatsapp').value || '').replace(/\D+/g,'');
+    const county = document.getElementById('county').value;
+    let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
+    const region = document.getElementById('regiao').value;
 
-    const fotosInput = document.getElementById('fotos');
-    const produtoId = Date.now().toString();
-    const uploaded = await uploadImagens(produtoId, fotosInput.files || []);
-    const capaIndex = parseInt(document.querySelector('input[name="capa"]:checked')?.value || 0);
-    const image = uploaded[capaIndex] || '';
-    const gallery = uploaded.filter((u,i)=> i!==capaIndex);
-
-    const produto = { id: produtoId, title: titulo, price: valor, description: descricao, department: departamento, stock: estoque, whatsapp, image, gallery, createdAt: Date.now(), status: "publicado" };
+    // (Opcional) Upload de imagens pode ser plugado aqui, omitido para estabilidade
+    const produto = { id: Date.now().toString(), title: titulo, price: valor, description: descricao, department: departamento, stock: estoque, whatsapp, region, image:'', gallery:[], createdAt: Date.now(), status:'publicado' };
     produtos.push(produto);
     await salvarNoGitHub(produtos);
-    document.getElementById('formProduto').reset();
-    document.getElementById('preview').innerHTML = '';
+    e.target.reset();
+    document.getElementById('preview').innerHTML='';
     renderProdutos();
   });
 
-  async function excluirProduto(index){
-    produtos.splice(index,1);
-    await salvarNoGitHub(produtos);
-    renderProdutos();
-  }
-  function editarProduto(index){
-    const novo = prompt('Novo título para: ' + (produtos[index]?.title || ''));
-    if(novo){ produtos[index].title = novo; salvarNoGitHub(produtos).then(renderProdutos); }
+  function excluirProduto(i){ produtos.splice(i,1); salvarNoGitHub(produtos).then(renderProdutos); }
+  function editarProduto(i){
+    const novo = prompt('Novo título:', produtos[i]?.title||'');
+    if(novo){ produtos[i].title = novo; salvarNoGitHub(produtos).then(renderProdutos); }
   }
 
-  // ===== GitHub Modal (config/localStorage) =====
-  const ghModal = document.getElementById('githubModal');
-  const openBtn = document.getElementById('openGithubModal');
-  const closeBtn = document.getElementById('closeGithubModal');
-  const saveBtn = document.getElementById('saveGithubConfig');
-  const testBtn = document.getElementById('testGithubConfig');
-  const dlBtn = document.getElementById('downloadProductsJson');
-
-  function showGhAlert(msg, success){
-    const el = document.getElementById('ghAlert');
-    el.textContent = msg;
-    el.style.display = 'block';
-    el.style.background = success ? '#28a745' : '#c0392b';
-  }
-  function loadGithubConfig(){
-    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    if(cfg.repo) document.getElementById('ghRepo').value = cfg.repo;
-    if(cfg.branch) document.getElementById('ghBranch').value = cfg.branch;
-    if(cfg.path) document.getElementById('ghPath').value = cfg.path;
-    if(cfg.token) document.getElementById('ghToken').value = cfg.token;
-  }
-  
-  // Prefer values from the modal inputs if present
-  function ghFromModalInputs(){
-    const repo = document.getElementById('ghRepo')?.value?.trim() || '';
-    const branch = document.getElementById('ghBranch')?.value?.trim() || '';
-    const path = document.getElementById('ghPath')?.value?.trim() || '';
-    const token = document.getElementById('ghToken')?.value || '';
-    return { repo, branch, path, token };
-  }
-
-  function saveGithubConfig(){
-    const cfgModal = ghFromModalInputs();
-    const cfg = {
-      repo: cfgModal.repo,
-      branch: cfgModal.branch || 'main',
-      path: cfgModal.path || 'products.json',
-      token: cfgModal.token
-    };
-    localStorage.setItem('ghConfig', JSON.stringify(cfg));
-    showGhAlert('Configuração salva!', true);
-    loadGithubConfig(); // keep modal in sync
-  };
-    localStorage.setItem('ghConfig', JSON.stringify(cfg));
-    showGhAlert('Configuração salva!', true);
-  }
-  async function testGithubConfig(){
-    const cfgLS = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    const modal = ghFromModalInputs();
-    const cfg = {
-      repo: modal.repo || cfgLS.repo,
-      branch: modal.branch || cfgLS.branch || 'main',
-      path: modal.path || cfgLS.path || 'products.json',
-      token: modal.token || cfgLS.token
-    };
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de testar.', false); return; }
-    try{
-      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, { headers: { Authorization: `token ${cfg.token}` } });
-      if(res.ok){ showGhAlert('✅ Conexão bem-sucedida!', true); } else { showGhAlert('❌ Erro: ' + res.status, false); }
-    }catch(e){ showGhAlert('❌ Falha: ' + e.message, false); }
-  }');
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de testar.', false); return; }
-    try{
-      const res = await fetch(\`https://api.github.com/repos/\${cfg.repo}/contents/\${cfg.path}?ref=\${cfg.branch}\`, { headers: { Authorization: \`token \${cfg.token}\` } });
-      if(res.ok){ showGhAlert('✅ Conexão bem-sucedida!', true); } else { showGhAlert('❌ Erro: ' + res.status, false); }
-    }catch(e){ showGhAlert('❌ Falha: ' + e.message, false); }
-  }
-  async function downloadProducts(){
-    const cfgLS = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    const modal = ghFromModalInputs();
-    const cfg = {
-      repo: modal.repo || cfgLS.repo,
-      branch: modal.branch || cfgLS.branch || 'main',
-      path: modal.path || cfgLS.path || 'products.json',
-      token: modal.token || cfgLS.token
-    };
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de baixar.', false); return; }
-    try{
-      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, { headers: { Authorization: `token ${cfg.token}` } });
-      if(!res.ok){ showGhAlert('❌ Erro ao baixar: ' + res.status, false); return; }
-      const data = await res.json();
-      if(data && data.content){
-        const b64 = (data.content || '').replace(/
-/g,'');
-        const bin = atob(b64);
-        const bytes = new Uint8Array(bin.length);
-        for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
-        const blob = new Blob([bytes], {type: 'application/json;charset=utf-8'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        const fname = (cfg.path.split('/').pop() || 'products.json');
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(a.href);
-        a.remove();
-        showGhAlert('📥 Download iniciado.', true);
-      } else { showGhAlert('Não foi possível obter o arquivo.', false); }
-    }catch(e){ showGhAlert('❌ Falha: ' + (e.message || e), false); }
-  }');
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de baixar.', false); return; }
-    try{
-      const res = await fetch(\`https://api.github.com/repos/\${cfg.repo}/contents/\${cfg.path}?ref=\${cfg.branch}\`, { headers: { Authorization: \`token \${cfg.token}\` } });
-      if(!res.ok){ showGhAlert('❌ Erro ao baixar: ' + res.status, false); return; }
-      const data = await res.json();
-      if(data && data.content){
-        const b64 = (data.content || '').replace(/\n/g,'');
-        const bin = atob(b64);
-        const bytes = new Uint8Array(bin.length);
-        for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
-        const blob = new Blob([bytes], {type: 'application/json;charset=utf-8'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        const fname = (cfg.path.split('/').pop() || 'products.json');
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(a.href);
-        a.remove();
-        showGhAlert('📥 Download iniciado.', true);
-      } else { showGhAlert('Não foi possível obter o arquivo.', false); }
-    }catch(e){ showGhAlert('❌ Falha: ' + (e.message || e), false); }
-  }
-
-  if(openBtn){ openBtn.onclick = ()=>{ loadGithubConfig(); ghModal.classList.add('show'); }; }
-  if(closeBtn){ closeBtn.onclick = ()=>{ ghModal.classList.remove('show'); }; }
-  if(saveBtn){ saveBtn.onclick = saveGithubConfig; }
-  if(testBtn){ testBtn.onclick = testGithubConfig; }
-  if(dlBtn){ dlBtn.onclick = downloadProducts; }
-
-  // Carregar lista inicial do GitHub
   async function carregarProdutosGitHub(){
-    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    const cfg = ghGet();
     if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
-    try {
-      const res = await fetch(\`https://api.github.com/repos/\${cfg.repo}/contents/\${cfg.path}?ref=\${cfg.branch}\`, { headers: { Authorization: \`token \${cfg.token}\` } });
+    try{
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, { headers:{ Authorization:`token ${cfg.token}` } });
       if(res.ok){
         const data = await res.json();
         const raw = decodeBase64Utf8(data.content || '');
         produtos = JSON.parse(raw || '[]');
         renderProdutos();
       }
-    } catch(e){ console.error("Erro ao carregar produtos:", e); }
+    }catch(e){ console.error('Erro ao carregar produtos:', e); }
   }
-  carregarProdutosGitHub();
 
-  // === Robust open/close for GitHub modal ===
-  function openGh(){
-    try{ loadGithubConfig(); }catch(e){}
-    var ghModal = document.getElementById('githubModal');
-    if(ghModal){ ghModal.classList.add('show'); }
+  
+  // ==== County & City selector ====
+  const COUNTY_CITIES = {"Carlow": ["Carlow Town", "Tullow", "Bagenalstown", "Clonegal", "Rathvilly", "Borris", "Hacketstown", "Ballon", "Fenagh", "Nurney"], "Cavan": ["Cavan Town", "Bailieborough", "Virginia", "Kingscourt", "Cootehill", "Belturbet", "Ballyjamesduff", "Arvagh", "Killeshandra", "Mullagh"], "Clare": ["Ennis", "Shannon", "Kilrush", "Ennistymon", "Kilkee", "Lahinch", "Lisdoonvarna", "Miltown Malbay", "Sixmilebridge", "Tulla", "Newmarket-on-Fergus", "Scarriff", "Killaloe", "Bodyke", "Quin"], "Cork": ["Cork City", "Ballincollig", "Carrigaline", "Cobh", "Mallow", "Midleton", "Youghal", "Clonakilty", "Bandon", "Skibbereen", "Kinsale", "Macroom", "Bantry", "Fermoy", "Charleville", "Passage West", "Kanturk", "Mitchelstown", "Glanmire", "Douglas", "Carrigtwohill", "Coachford", "Buttevant", "Millstreet", "Drimoleague"], "Donegal": ["Letterkenny", "Buncrana", "Ballybofey", "Bundoran", "Donegal Town", "Killybegs", "Derrybeg", "Gweedore", "Glenties", "Carndonagh", "Moville", "Ramelton", "Rathmullan", "Milford", "Falcarragh", "Dungloe", "Ballyshannon", "Lifford"], "Dublin": ["Dublin 1", "Dublin 2", "Dublin 3", "Dublin 4", "Dublin 5", "Dublin 6", "Dublin 6W", "Dublin 7", "Dublin 8", "Dublin 9", "Dublin 10", "Dublin 11", "Dublin 12", "Dublin 13", "Dublin 14", "Dublin 15", "Dublin 16", "Dublin 17", "Dublin 18", "Dublin 20", "Dublin 22", "Dublin 24", "Dún Laoghaire", "Blackrock", "Stillorgan", "Dundrum", "Sandyford", "Ranelagh", "Rathmines", "Rathgar", "Terenure", "Templeogue", "Clonskeagh", "Donnybrook", "Ballsbridge", "Irishtown", "Sandycove", "Monkstown", "Dalkey", "Killiney", "Shankill", "Lucan", "Palmerstown", "Chapelizod", "Clondalkin", "Tallaght", "Rathfarnham", "Knocklyon", "Blanchardstown", "Castleknock", "Clonsilla", "Swords", "Malahide", "Portmarnock", "Howth", "Baldoyle", "Donabate", "Skerries", "Rush", "Lusk", "Balbriggan", "Raheny", "Artane", "Beaumont", "Santry", "Drumcondra", "Phibsborough", "Cabra", "Finglas", "Ballymun", "Coolock", "Clontarf"], "Galway": ["Galway City", "Athenry", "Tuam", "Ballinasloe", "Loughrea", "Oranmore", "Gort", "Portumna", "Moycullen", "Claregalway", "Kinvara", "Headford", "Oughterard", "Barna", "Spiddal", "Carraroe (An Cheathrú Rua)", "Inverin", "Leenane", "Mountbellew", "Dunmore", "Glenamaddy", "Ballinderreen", "Craughwell", "Abbeyknockmoy", "Ahascragh", "Ardrahan", "Ballygar", "Peterswell", "Clifden", "Recess", "Roundstone"], "Kerry": ["Tralee", "Killarney", "Listowel", "Dingle", "Kenmare", "Cahersiveen", "Killorglin", "Castleisland", "Sneem", "Waterville", "Annascaul", "Ballybunion"], "Kildare": ["Naas", "Newbridge", "Maynooth", "Celbridge", "Leixlip", "Athy", "Kildare Town", "Kilcullen", "Monasterevin", "Clane", "Sallins", "Rathangan", "Prosperous"], "Kilkenny": ["Kilkenny City", "Callan", "Thomastown", "Graiguenamanagh", "Castlecomer", "Bennettsbridge", "Gowran", "Urlingford", "Mooncoin", "Piltown", "Freshford"], "Laois": ["Portlaoise", "Portarlington", "Mountmellick", "Abbeyleix", "Stradbally", "Durrow", "Mountrath", "Rathdowney", "Emo", "Ballylinan"], "Leitrim": ["Carrick-on-Shannon", "Manorhamilton", "Ballinamore", "Mohill", "Drumshanbo", "Dromahair"], "Limerick": ["Limerick City", "Newcastle West", "Abbeyfeale", "Kilmallock", "Rathkeale", "Askeaton", "Adare", "Croom", "Bruff"], "Longford": ["Longford Town", "Granard", "Lanesborough", "Edgeworthstown", "Ballymahon", "Newtownforbes"], "Louth": ["Dundalk", "Drogheda", "Ardee", "Blackrock", "Carlingford", "Castlebellingham", "Termonfeckin"], "Mayo": ["Castlebar", "Ballina", "Westport", "Claremorris", "Ballinrobe", "Swinford", "Belmullet", "Foxford", "Ballyhaunis", "Louisburgh", "Newport", "Charlestown"], "Meath": ["Navan", "Ashbourne", "Trim", "Kells", "Laytown–Bettystown", "Ratoath", "Dunboyne", "Duleek", "Kildalkey", "Athboy", "Enfield", "Oldcastle"], "Monaghan": ["Monaghan Town", "Carrickmacross", "Castleblayney", "Clones", "Ballybay", "Emyvale"], "Offaly": ["Tullamore", "Birr", "Edenderry", "Clara", "Banagher", "Ferbane", "Daingean", "Kilcormac", "Shannonbridge"], "Roscommon": ["Roscommon Town", "Boyle", "Castlerea", "Ballaghaderreen", "Strokestown", "Lanesborough", "Elphin"], "Sligo": ["Sligo Town", "Tubbercurry", "Enniscrone", "Collooney", "Ballymote", "Grange", "Strandhill"], "Tipperary": ["Clonmel", "Nenagh", "Thurles", "Tipperary Town", "Carrick-on-Suir", "Templemore", "Cashel", "Roscrea", "Cahir", "Borrisokane"], "Waterford": ["Waterford City", "Tramore", "Dungarvan", "Lismore", "Cappoquin", "Kilmacthomas"], "Westmeath": ["Athlone", "Mullingar", "Moate", "Kinnegad", "Castlepollard", "Kilbeggan", "Rochfortbridge"], "Wexford": ["Wexford Town", "Gorey", "Enniscorthy", "New Ross", "Rosslare", "Courtown", "Bunclody", "Taghmon"], "Wicklow": ["Bray", "Greystones", "Arklow", "Wicklow Town", "Blessington", "Baltinglass", "Newtownmountkennedy", "Rathnew", "Kilcoole", "Roundwood"]};
+  function populateCounties(){
+    const sel = document.getElementById('county');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">Selecione o condado…</option>' + Object.keys(COUNTY_CITIES).sort().map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
   }
-  function closeGh(){
-    var ghModal = document.getElementById('githubModal');
-    if(ghModal){ ghModal.classList.remove('show'); }
+  function populateCities(){
+    const county = document.getElementById('county') ? document.getElementById('county').value : '';
+    const citySel = document.getElementById('city');
+    if(!citySel) return;
+    const list = COUNTY_CITIES[county] || [];
+    citySel.disabled = !list.length;
+    citySel.innerHTML = '<option value="">' + (list.length? 'Selecione uma cidade…' : 'Selecione o condado primeiro…') + '</option>' + list.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
   }
   document.addEventListener('DOMContentLoaded', function(){
-    var openBtn = document.getElementById('openGithubModal');
-    var closeBtn = document.getElementById('closeGithubModal');
-    var ghModal = document.getElementById('githubModal');
-    if(openBtn){ openBtn.addEventListener('click', openGh); }
-    if(closeBtn){ closeBtn.addEventListener('click', closeGh); }
-    if(ghModal){
-      ghModal.addEventListener('click', function(e){
-        if(e.target === ghModal){ closeGh(); }
-      });
-    }
+    populateCounties();
+    var countyEl = document.getElementById('county');
+    if(countyEl){ countyEl.addEventListener('change', populateCities); }
   });
 
-
-  // ===== Modal: open/close robust =====
-  function ghModalOpen(){
-    loadGithubConfig();
-    const el = document.getElementById('githubModal');
-    el.classList.add('show');
-    el.style.display='flex';
-  }
-  function ghModalClose(){
-    const el = document.getElementById('githubModal');
-    el.classList.remove('show');
-    el.style.display='none';
-  }
-
-  // Bindings (retry-safe)
-  (function bindGhUI(){
-    const openBtn = document.getElementById('openGithubModal');
-    const closeBtn = document.getElementById('closeGithubModal');
-    const saveBtn = document.getElementById('saveGithubConfig');
-    const testBtn = document.getElementById('testGithubConfig');
-    const dlBtn = document.getElementById('downloadProductsJson');
-    if(openBtn) openBtn.onclick = ghModalOpen;
-    if(closeBtn) closeBtn.onclick = ghModalClose;
-    if(saveBtn) saveBtn.onclick = saveGithubConfig;
-    if(testBtn) testBtn.onclick = testGithubConfig;
-    if(dlBtn) dlBtn.onclick = downloadProducts;
-  })();
-
-
-  // (inline GitHub config removido — usar modal)
-  function ghGet(){ return JSON.parse(localStorage.getItem('ghConfig')||'{}'); }
-  function ghSet(cfg){ localStorage.setItem('ghConfig', JSON.stringify(cfg)); }
-  function ghLoadIntoInputs(){
-    const cfg = ghGet();
-    document.getElementById('ghRepoInline').value = cfg.repo || '';
-    document.getElementById('ghBranchInline').value = cfg.branch || 'main';
-    document.getElementById('ghPathInline').value = cfg.path || 'products.json';
-    document.getElementById('ghTokenInline').value = cfg.token || '';
-  }
-  function ghSaveFromInputs(){
-    const cfg = {
-      repo: document.getElementById('ghRepoInline').value,
-      branch: document.getElementById('ghBranchInline').value || 'main',
-      path: document.getElementById('ghPathInline').value || 'products.json',
-      token: document.getElementById('ghTokenInline').value
-    };
-    ghSet(cfg);
-    showGhAlert('Configuração salva!', true);
-    loadGithubConfig(); // update modal too
-  }
-  async function ghTestFromInputs(){ testGithubConfig(); }
-  async function ghDownloadFromInputs(){ downloadProducts(); }
-
   
-  
-  
-  
+  function toggleCityCustom(){
+    var sel = document.getElementById('city');
+    var input = document.getElementById('cityCustom');
+    if(!sel || !input) return;
+    if(sel.value === '__custom__'){ input.style.display='block'; input.focus(); }
+    else { input.style.display='none'; }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var citySel = document.getElementById('city');
+    if(citySel){ citySel.addEventListener('change', toggleCityCustom); }
+  });
 
+  // primeira render
+  renderProdutos();
 
-  // fechar ao clicar fora
-  (function(){
-    const modal = document.getElementById('githubModal');
-    if(modal){
-      modal.addEventListener('click', (e)=>{ if(e.target === modal){ ghModalClose(); } });
-    }
-  })();
-</script>
+})();</script>
 </body>
 </html>
