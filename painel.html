@@ -58,7 +58,7 @@
 
   <div class="container">
     <div class="card">
-      <form class="form" id="formProduto">
+      <form class="form" id="formProduto" novalidate>
         <input id="titulo" placeholder="Título do produto" required type="text"/>
         <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
         <textarea id="descricao" placeholder="Descrição do produto"></textarea>
@@ -72,7 +72,7 @@
         <label>Estoque</label>
         <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
         <label>WhatsApp do dono (somente números, com DDI)</label>
-        <input id="whatsapp" placeholder="Ex: 353899999999" type="tel" inputmode="numeric" pattern="\\d*"/>
+        <input id="whatsapp" placeholder="Ex: 353899999999" type="tel" inputmode="numeric" />
         <small style="color:var(--muted);margin-top:-6px;">Usado para abrir conversa no WhatsApp a partir do modal do produto.</small>
         <div class="region-row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <div class="gh-row">
