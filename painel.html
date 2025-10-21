@@ -58,7 +58,7 @@
 
   <div class="container">
     <div class="card">
-      <form class="form" id="formProduto" novalidate>
+      <form class="form" id="formProduto" novalidate novalidate>
         <input id="titulo" placeholder="Título do produto" required type="text"/>
         <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
         <textarea id="descricao" placeholder="Descrição do produto"></textarea>
@@ -72,7 +72,7 @@
         <label>Estoque</label>
         <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
         <label>WhatsApp do dono (somente números, com DDI)</label>
-        <input id="whatsapp" placeholder="Ex: 353899999999" type="tel" inputmode="numeric" />
+        <input id="whatsapp" placeholder="Digite o WhatsApp em qualquer formato" type="text" />
         <small style="color:var(--muted);margin-top:-6px;">Usado para abrir conversa no WhatsApp a partir do modal do produto.</small>
         <div class="region-row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <div class="gh-row">
@@ -112,7 +112,6 @@
             <th>Condado</th>
             <th>Cidade</th>
             <th>WhatsApp</th>
-            <th>Região</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -284,6 +283,54 @@
     return d;
   }
 
+
+  // ===== GitHub Upload Helpers =====
+  async function readFileAsBase64(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = String(reader.result||'');
+        const base64 = res.split(',')[1] || '';
+        resolve(base64);
+      };
+      reader.onerror = e => reject(e);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function getFileShaIfExists(repo, branch, path, token){
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+    });
+    if(res.ok){
+      const data = await res.json();
+      return data.sha || null;
+    }
+    return null;
+  }
+
+  async function uploadGitHubFile({repo, branch, path, token, base64, message}){
+    const sha = await getFileShaIfExists(repo, branch, path, token);
+    const body = { message: message || `upload ${path}`, branch, content: base64 };
+    if(sha) body.sha = sha;
+    const put = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!put.ok){
+      throw new Error('Falha ao subir arquivo ' + path + ' (' + put.status + ')');
+    }
+    const json = await put.json();
+    // Prefer download_url for raw access
+    return (json.content && json.content.download_url) ? json.content.download_url : (json.content && json.content.html_url) || '';
+  }
+
+  function slugifyName(name){
+    return String(name||'arquivo').toLowerCase()
+      .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  }
+
   // ===== Produtos CRUD (com WhatsApp) =====
   let produtos = [];
   function renderProdutos(){
@@ -297,11 +344,9 @@
         <td>${p.department||''}</td>
         <td>${p.stock??0}</td>
         <td>${new Date(p.createdAt||Date.now()).toLocaleDateString()}</td>
-        <td>${p.region||p.regiao||''}</td>
-        <td>${p.county||p.region||p.regiao||''}</td>
+        <td>${p.county||''}</td>
         <td>${p.city||''}</td>
         <td>${p.whatsapp||''}</td>
-        <td>${p.region||''}</td>
         <td>
           <div style="display:flex;gap:6px;">
             <button class="action" data-edit="${i}">Editar</button>
@@ -338,9 +383,7 @@
       createdAt: p.createdAt || Date.now(),
       status: p.status || 'publicado',
       county: p.county || '',
-      city: p.city || '',
-      region: p.region || p.regiao || '',
-      region: p.region || ''
+      city: p.city || ''
     }));
     const body = { message:"Atualizando products.json via Painel Brazucas", branch:cfg.branch, content: encodeBase64Utf8(JSON.stringify(sanitized,null,2)) };
     if(sha) body.sha = sha;
@@ -382,8 +425,31 @@
     let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
     const region = document.getElementById('regiao').value;
 
-    // (Opcional) Upload de imagens pode ser plugado aqui, omitido para estabilidade
-    const produto = { id: Date.now().toString(), title: titulo, price: valor, description: descricao, department: departamento, stock: estoque, whatsapp, region, image:'', gallery:[], createdAt: Date.now(), status:'publicado' };
+    // Upload de imagens para GitHub (pasta por produto) e usar apenas URLs no JSON
+    const cfg = ghGet();
+    const productId = Date.now().toString();
+    const files = Array.from(document.getElementById('fotos').files || []);
+    let coverIndex = 0;
+    const checked = document.querySelector('input[name="capa"]:checked');
+    if(checked){ coverIndex = parseInt(checked.value || '0', 10) || 0; }
+    let galleryUrls = [];
+    if(cfg.repo && cfg.branch && cfg.token && files.length){
+      const imgBase = (cfg.path.split('/').slice(0,-1).join('/') || 'data') + `/images/${productId}`;
+      for(let i=0;i<files.length;i++){
+        const f = files[i];
+        const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
+        const fname = slugifyName(f.name.replace(/\.[^.]+$/, '')) + '.' + ext;
+        const destPath = `${imgBase}/${fname}`;
+        const b64 = await readFileAsBase64(f);
+        const url = await uploadGitHubFile({
+          repo: cfg.repo, branch: cfg.branch, path: destPath, token: cfg.token,
+          base64: b64, message: `Upload image for product ${productId}`
+        });
+        galleryUrls.push(url);
+      }
+    }
+    const imageUrl = galleryUrls.length ? galleryUrls[Math.min(coverIndex, galleryUrls.length-1)] : '';
+    const produto = { id: productId, title: titulo, price: valor, description: descricao, department: departamento, county, city, stock: estoque, whatsapp, image: imageUrl, gallery: galleryUrls, createdAt: Date.now(), status:'publicado' };
     produtos.push(produto);
     await salvarNoGitHub(produtos);
     e.target.reset();
