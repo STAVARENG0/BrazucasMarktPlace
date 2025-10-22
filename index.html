@@ -84,6 +84,52 @@
     @media (min-width: 760px){
       .product-modal-body{ grid-template-columns: 1.2fr 1fr; align-items:start; }
     }
+  
+    /* ======== GRID E CARD DE PRODUTO ======== */
+    #productGrid{
+      width:min(1000px,96vw);
+      margin: 12px auto 0;
+      display:grid;
+      grid-template-columns: repeat(1, minmax(0,1fr));
+      gap: 14px;
+    }
+    @media (min-width:560px){ #productGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (min-width:860px){ #productGrid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    .product-card{
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 12px 26px rgba(0,0,0,.12);
+      overflow: hidden;
+      text-align:left;
+      border: 1px solid #eadfce;
+    }
+    .product-card .media{
+      aspect-ratio: 4 / 3;
+      background: #fff;
+      display:block;
+      overflow:hidden;
+    }
+    .product-card .media img{
+      width:100%; height:100%; object-fit:contain; display:block;
+      background:#fff;
+    }
+    .product-card .body{
+      padding: 12px 14px 14px;
+    }
+    .product-card .title{
+      margin:0 0 6px; font-size:16px; line-height:1.25; font-weight:800; color:#2b2b2b;
+    }
+    .product-card .title button{
+      background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit;font:inherit;text-align:left;
+    }
+    .product-card .brand{ color:#6a6a6a; font-size:12px; margin-bottom:6px; }
+    .product-card .meta{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .product-card .price{ font-weight:900; }
+    .product-card .stock{ color:#6a6a6a; font-size:12px; }
+    .product-card .cta{
+      padding: 0 14px 14px;
+    }
+
   </style>
 </head>
 <body>
@@ -91,7 +137,7 @@
     <img src="logo.png" alt="Brazucas na Irlanda Marketplace" class="logo">
 
     <form class="search" onsubmit="event.preventDefault();">
-      <input type="search" placeholder="Buscar no site…" aria-label="Buscar" />
+      <input id="q" type="search" placeholder="Buscar no site…" aria-label="Buscar" />
       <button type="submit">Buscar</button>
     </form>
 
@@ -102,7 +148,9 @@
     </nav>
 
     <div class="divider" aria-hidden="true"></div>
-    <div id="loadStatus" style="display:none;margin:8px auto 0;width:min(860px,92vw);text-align:center;font:600 13px/1.2 Poppins,Arial,sans-serif;padding:10px 12px;border-radius:9999px;"></div>
+
+    <!-- Grade de produtos -->
+    <section id="productGrid" aria-live="polite"></section>
   </main>
 
   <!-- ===== Modal de Produto (oculto) ===== -->
@@ -127,156 +175,180 @@
   </div>
 
   <script>
-    
-// ====== Receptor de produtos do painel (via products.json) ======
-const qs = new URLSearchParams(location.search);
-function qsStr(name){ const v = qs.get(name); return v && v.trim() ? v.trim() : null; }
+    // ====== Receptor de produtos do painel (via products.json) ======
+    const PUBLIC_JSON = './products.json'; // mesmo arquivo gerenciado pelo painel
+    let BZ_PRODUCTS = [];
 
-// Permite override via ?src=<URL para products.json>
-const SRC_OVERRIDE = qsStr('src');
-// Candidatos de caminho (ordem de tentativa)
-const CANDIDATES = SRC_OVERRIDE ? [SRC_OVERRIDE] : [
-  './products.json',
-  './data/products.json',
-  '/products.json'
-];
-
-let BZ_PRODUCTS = [];
-
-const $status = document.getElementById('loadStatus');
-function setStatus(type, msg){
-  if(!$status) return;
-  $status.style.display = 'block';
-  $status.style.color = type==='ok' ? '#0f5132' : (type==='warn' ? '#664d03' : '#842029');
-  $status.style.background = type==='ok' ? '#d1e7dd' : (type==='warn' ? '#fff3cd' : '#f8d7da');
-  $status.style.border = '1px solid rgba(0,0,0,.08)';
-  $status.textContent = msg;
-}
-
-function fmtEUR(n){
-  const v = Number(n);
-  if(Number.isNaN(v)) return '€ ' + (n ?? '');
-  if(Number.isInteger(v)) return '€ ' + v;
-  return '€ ' + String(v);
-}
-function sanitizeList(list){
-  if(!Array.isArray(list)) return [];
-  return list.map(p => ({
-    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
-    title: p.title || '',
-    brand: p.brand || p.department || '',
-    price: Number(p.price || 0),
-    image: p.image || 'logo.png',
-    description: p.description || '',
-    gallery: Array.isArray(p.gallery)? p.gallery : [],
-    category: p.category || '',
-    createdAt: p.createdAt || 0,
-    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10),
-    whatsapp: p.whatsapp || p.phone || ''
-  }));
-}
-
-async function tryFetch(url){
-  const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), {cache:'no-store'});
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const ct = (r.headers.get('content-type')||'').toLowerCase();
-  if(!ct.includes('application/json') && !ct.includes('text/plain')){
-    // ainda tentamos parsear
-  }
-  return r.json();
-}
-
-async function loadProducts(){
-  for(const src of CANDIDATES){
-    try{
-      const data = await tryFetch(src);
-      BZ_PRODUCTS = sanitizeList(data);
-      setStatus('ok', `Produtos carregados (${BZ_PRODUCTS.length}). Fonte: ${src}`);
-      return;
-    }catch(e){
-      // tenta próximo
+    function fmtEUR(n){
+      const v = Number(n);
+      if(Number.isNaN(v)) return '€ ' + (n ?? '');
+      if(Number.isInteger(v)) return '€ ' + v;
+      return '€ ' + String(v);
     }
-  }
-  BZ_PRODUCTS = [];
-  // Ajuda quando abrindo via file://
-  const isFile = location.protocol === 'file:';
-  if(isFile){
-    setStatus('warn','Abra o site via um servidor (http://) para ler o JSON. Dica: use Live Server no VS Code.');
-  }else{
-    setStatus('error','Não foi possível carregar o products.json. Verifique o caminho ou use ?src=URL.');
-  }
-}
+    function sanitizeList(list){
+      if(!Array.isArray(list)) return [];
+      return list.map(p => ({
+        id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+        title: p.title || '',
+        brand: p.brand || p.department || '',
+        price: Number(p.price || 0),
+        image: p.image || 'logo.png',
+        description: p.description || '',
+        gallery: Array.isArray(p.gallery)? p.gallery : [],
+        category: p.category || '',
+        createdAt: p.createdAt || 0,
+        stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+      }));
+    }
+    async function loadProducts(){
+      try{
+        const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const data = await r.json();
+        BZ_PRODUCTS = sanitizeList(data);
+      }catch(e){ BZ_PRODUCTS = []; }
+    }
 
-// ====== Modal Controller (sem alterar tema) ======
-const productModal = document.getElementById('productModal');
-const pmTitle = document.getElementById('pmTitle');
-const pmBrand = document.getElementById('pmBrand');
-const pmPrice = document.getElementById('pmPrice');
-const pmStock = document.getElementById('pmStock');
-const pmDesc = document.getElementById('pmDesc');
-const pmImage = document.getElementById('pmImage');
-const pmGallery = document.getElementById('pmGallery');
-const pmCta = document.getElementById('pmCta');
+    // ====== Modal Controller (sem alterar tema) ======
+    const productModal = document.getElementById('productModal');
+    const pmTitle = document.getElementById('pmTitle');
+    const pmBrand = document.getElementById('pmBrand');
+    const pmPrice = document.getElementById('pmPrice');
+    const pmStock = document.getElementById('pmStock');
+    const pmDesc = document.getElementById('pmDesc');
+    const pmImage = document.getElementById('pmImage');
+    const pmGallery = document.getElementById('pmGallery');
+    const pmCta = document.getElementById('pmCta');
 
-const BZModal = {
-  async openById(id){
-    if(!BZ_PRODUCTS.length){ await loadProducts(); }
-    const product = BZ_PRODUCTS.find(p => String(p.id) === String(id));
-    if(product){ this.open(product); }
-  },
-  open(product){
-    pmTitle.textContent = product.title || '';
-    pmBrand.textContent = product.brand ? product.brand : '';
-    pmPrice.textContent = fmtEUR(product.price);
-    pmStock.textContent = 'Stock: ' + (product.stock ?? 0);
-    pmDesc.textContent = product.description || '—';
-    pmImage.src = product.image;
-    pmImage.alt = product.title || 'Product image';
-    pmGallery.innerHTML = '';
-    const gallery = Array.isArray(product.gallery) ? product.gallery : [];
-    const images = [product.image, ...gallery.filter(Boolean)];
-    images.slice(0,8).forEach(src => {
-      const gi = document.createElement('img');
-      gi.src = src;
-      gi.alt = product.title;
-      gi.addEventListener('click', ()=>{ pmImage.src = src; });
-      pmGallery.appendChild(gi);
+    const BZModal = {
+      async openById(id){
+        if(!BZ_PRODUCTS.length){ await loadProducts(); }
+        const product = BZ_PRODUCTS.find(p => String(p.id) === String(id));
+        if(product){ this.open(product); }
+      },
+      open(product){
+        pmTitle.textContent = product.title || '';
+        pmBrand.textContent = product.brand ? product.brand : '';
+        pmPrice.textContent = fmtEUR(product.price);
+        pmStock.textContent = 'Stock: ' + (product.stock ?? 0);
+        pmDesc.textContent = product.description || '—';
+        pmImage.src = product.image;
+        pmImage.alt = product.title || 'Product image';
+        pmGallery.innerHTML = '';
+        const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+        const images = [product.image, ...gallery.filter(Boolean)];
+        images.slice(0,8).forEach(src => {
+          const gi = document.createElement('img');
+          gi.src = src;
+          gi.alt = product.title;
+          gi.addEventListener('click', ()=>{ pmImage.src = src; });
+          pmGallery.appendChild(gi);
+        });
+        pmCta.innerHTML = '';
+        const btn = document.createElement('a');
+        const phone = (product.whatsapp||'').replace(/\D+/g,'');
+        const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
+        if(phone){
+          btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+          btn.target = '_blank';
+          btn.rel = 'noopener';
+          btn.textContent = 'Falar no WhatsApp';
+        } else {
+          btn.href = '#';
+          btn.textContent = 'WhatsApp não disponível';
+          btn.style.opacity = '.6'; btn.style.pointerEvents = 'none';
+        }
+        btn.className = 'btn';
+        pmCta.appendChild(btn);
+
+        productModal.style.display = 'flex';
+        productModal.setAttribute('aria-hidden','false');
+      },
+      close(){
+        productModal.style.display = 'none';
+        productModal.setAttribute('aria-hidden','true');
+      },
+      // utilitário para pré-carregar
+      preload: loadProducts
+    };
+    window.BZModal = BZModal;
+
+    // Fechar ao clicar fora ou Esc
+    productModal.addEventListener('click', (e)=>{ if(e.target === productModal){ BZModal.close(); } });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ BZModal.close(); } });
+
+    // Pré-carrega silenciosamente
+    loadProducts();
+    // ====== Renderização dos cards ======
+    const grid = document.getElementById('productGrid');
+    const q = document.getElementById('q');
+    function norm(s){ return (s||'').toLowerCase(); }
+
+    function tplCard(p){
+      const id = String(p.id);
+      return `
+      <article class="product-card" data-id="${id}">
+        <a class="media" href="#" data-action="open-product" data-id="${id}">
+          <img src="${p.image}" alt="${p.title||''}">
+        </a>
+        <div class="body">
+          <h3 class="title">
+            <button type="button" data-action="open-product" data-id="${id}">${p.title||''}</button>
+          </h3>
+          <div class="brand">${p.brand||''}</div>
+          <div class="meta">
+            <div class="price">€ ${Number(p.price||0)}</div>
+            <div class="stock">Stock: ${p.stock ?? 0}</div>
+          </div>
+        </div>
+        <div class="cta">
+          <a href="#" class="btn" data-action="open-product" data-id="${id}">Ver detalhes</a>
+        </div>
+      </article>`;
+    }
+
+    function renderProducts(term=''){
+      if(!grid) return;
+      const t = norm(term);
+      let list = BZ_PRODUCTS.slice();
+      if(t){
+        list = list.filter(p => norm(p.title).includes(t) || norm(p.brand).includes(t) || norm(p.description).includes(t) || norm(p.category).includes(t));
+      }
+      if(!list.length){
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#6a6a6a;margin:16px 0;">Nenhum produto encontrado.</p>';
+        return;
+      }
+      grid.innerHTML = list.map(tplCard).join('');
+    }
+
+    // Aciona modal ao clicar em qualquer controle do card
+    document.addEventListener('click', (e)=>{
+      const a = e.target.closest('[data-action="open-product"]');
+      if(a){
+        e.preventDefault();
+        const id = a.getAttribute('data-id');
+        BZModal.openById(id);
+      }
     });
-    pmCta.innerHTML = '';
-    const btn = document.createElement('a');
-    const phone = (product.whatsapp||'').replace(/\D+/g,'');
-    const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
-    if(phone){
-      btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
-      btn.target = '_blank';
-      btn.rel = 'noopener';
-      btn.textContent = 'Falar no WhatsApp';
-    } else {
-      btn.href = '#';
-      btn.textContent = 'WhatsApp não disponível';
-      btn.style.opacity = '.6'; btn.style.pointerEvents = 'none';
+
+    // Busca
+    const form = document.querySelector('.search');
+    if(form){
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        renderProducts(q && q.value);
+      });
+      if(q){
+        q.addEventListener('input', ()=> renderProducts(q.value));
+      }
     }
-    btn.className = 'btn';
-    pmCta.appendChild(btn);
 
-    productModal.style.display = 'flex';
-    productModal.setAttribute('aria-hidden','false');
-  },
-  close(){
-    productModal.style.display = 'none';
-    productModal.setAttribute('aria-hidden','true');
-  },
-  // utilitário para pré-carregar
-  preload: loadProducts
-};
-window.BZModal = BZModal;
+    // Carrega e renderiza ao abrir
+    (async ()=>{
+      await loadProducts();
+      renderProducts();
+    })();
 
-// Fechar ao clicar fora ou Esc
-productModal.addEventListener('click', (e)=>{ if(e.target === productModal){ BZModal.close(); } });
-document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ BZModal.close(); } });
-
-// Pré-carrega silenciosamente
-loadProducts();
   </script>
 </body>
 </html>
