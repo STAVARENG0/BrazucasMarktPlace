@@ -703,5 +703,54 @@
 })();
 </script>
 
+
+<script>
+// ===== Hidratação robusta do products.json do GitHub (lista existente) =====
+(function(){
+  if (window.__BZ_HYDRATE_PATCH__) return;
+  window.__BZ_HYDRATE_PATCH__ = true;
+
+  async function fetchRawProductsFromRepo(){
+    try{
+      if(!window.ghGet) return null;
+      const cfg = window.ghGet() || {};
+      if(!cfg.repo || !cfg.branch) return null;
+      const repo = String(cfg.repo).trim(); // formato esperado: owner/repo
+      const branch = String(cfg.branch).trim();
+      const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/products.json`;
+      const r = await fetch(rawUrl + `?t=${Date.now()}`, { cache: 'no-store' });
+      if(!r.ok) return null;
+      const data = await r.json().catch(()=>null);
+      return Array.isArray(data) ? data : null;
+    }catch(e){ return null; }
+  }
+
+  async function hydrate(){
+    try{
+      // 1) Tenta usar a função nativa do painel, se existir
+      if (window.carregarProdutosGitHub){
+        try{ await window.carregarProdutosGitHub(); }catch(_){}
+      }
+      // 2) Se ainda não há produtos, tenta via raw.githubusercontent.com
+      if(!Array.isArray(window.produtos) || window.produtos.length === 0){
+        const data = await fetchRawProductsFromRepo();
+        if(Array.isArray(data)){
+          window.produtos = data;
+        }
+      }
+      // 3) Renderiza a tabela/lista
+      if(window.renderProdutos) window.renderProdutos();
+    }catch(_){
+      if(window.renderProdutos) window.renderProdutos();
+    }
+  }
+
+  // Hidrata na primeira carga e sempre que voltar do salvar
+  document.addEventListener('DOMContentLoaded', hydrate);
+  // Se houver botão manual de recarregar, você pode chamar: window.BZHydrate()
+  window.BZHydrate = hydrate;
+})();
+</script>
+
 </body>
 </html>
