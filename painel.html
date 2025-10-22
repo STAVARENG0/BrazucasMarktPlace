@@ -635,5 +635,93 @@
 })();
 </script>
 
+
+<script>
+// ===== Patch: abrir/fechar "Configurações do GitHub" sem quebrar código existente =====
+(function(){
+  if (window.__GH_CONFIG_MODAL_PATCH__) return;
+  window.__GH_CONFIG_MODAL_PATCH__ = true;
+
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function getGhModal(){
+    return (
+      document.getElementById('ghConfigModal') ||
+      document.getElementById('githubConfigModal') ||
+      document.getElementById('configModal') ||
+      $('.github-config-modal') ||
+      $('[data-modal="github"]') ||
+      $('[aria-label="Configurações do GitHub"]')
+    );
+  }
+  function openGh(){
+    const m = getGhModal();
+    if(!m) return;
+    m.style.display = (getComputedStyle(m).display === 'none' ? 'flex' : m.style.display || 'flex');
+    m.setAttribute('aria-hidden','false');
+    // impede scroll de fundo, se aplicável
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function closeGh(){
+    const m = getGhModal();
+    if(!m) return;
+    m.style.display = 'none';
+    m.setAttribute('aria-hidden','true');
+    document.documentElement.style.overflow = '';
+  }
+  // Expor helpers
+  window.openGhConfig = openGh;
+  window.closeGhConfig = closeGh;
+
+  // Delegação de abertura (tenta múltiplos seletores comuns no projeto)
+  const openSelectors = [
+    '#btnGithub','#btnConfig','#openGh','#openGithub','#openGhConfig',
+    '[data-action="github-config"]','[data-action="open-config"]','[data-open="github"]','[data-open="gh-config"]'
+  ];
+  function bindOpeners(){
+    openSelectors.forEach(sel=>{
+      document.querySelectorAll(sel).forEach(el=>{
+        el.addEventListener('click', function(e){ e.preventDefault(); openGh(); }, {capture:true});
+      });
+    });
+  }
+
+  // Fechamento por botão/overlay/Esc
+  function bindClosers(){
+    const m = getGhModal();
+    if(!m) return;
+    // Botões internos padrão
+    m.querySelectorAll('.modal-close,[data-close],.close,.btn-close').forEach(el=>{
+      el.addEventListener('click', function(e){ e.preventDefault(); closeGh(); }, {capture:true});
+    });
+    // Clique fora do conteúdo
+    m.addEventListener('click', function(e){
+      if(e.target === m) closeGh();
+    });
+    // ESC
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ closeGh(); }
+    }, {capture:true});
+  }
+
+  // Se existir ícone/entrada de menu com texto "Configurações do GitHub", também vincula
+  function bindByText(){
+    const candidates = Array.from(document.querySelectorAll('a,button,[role="button"]'));
+    candidates.forEach(el=>{
+      const txt = (el.textContent||'').trim().toLowerCase();
+      if(txt === 'configurações do github' || txt === 'configurações github' || txt === 'github'){
+        el.addEventListener('click', function(e){ e.preventDefault(); openGh(); }, {capture:true});
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    bindOpeners();
+    bindClosers();
+    bindByText();
+  });
+
+})();
+</script>
+
 </body>
 </html>
