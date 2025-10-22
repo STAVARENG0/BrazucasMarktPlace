@@ -102,6 +102,7 @@
     </nav>
 
     <div class="divider" aria-hidden="true"></div>
+    <div id="loadStatus" style="display:none;margin:8px auto 0;width:min(860px,92vw);text-align:center;font:600 13px/1.2 Poppins,Arial,sans-serif;padding:10px 12px;border-radius:9999px;"></div>
   </main>
 
   <!-- ===== Modal de Produto (oculto) ===== -->
@@ -126,110 +127,156 @@
   </div>
 
   <script>
-    // ====== Receptor de produtos do painel (via products.json) ======
-    const PUBLIC_JSON = './products.json'; // mesmo arquivo gerenciado pelo painel
-    let BZ_PRODUCTS = [];
+    
+// ====== Receptor de produtos do painel (via products.json) ======
+const qs = new URLSearchParams(location.search);
+function qsStr(name){ const v = qs.get(name); return v && v.trim() ? v.trim() : null; }
 
-    function fmtEUR(n){
-      const v = Number(n);
-      if(Number.isNaN(v)) return '€ ' + (n ?? '');
-      if(Number.isInteger(v)) return '€ ' + v;
-      return '€ ' + String(v);
+// Permite override via ?src=<URL para products.json>
+const SRC_OVERRIDE = qsStr('src');
+// Candidatos de caminho (ordem de tentativa)
+const CANDIDATES = SRC_OVERRIDE ? [SRC_OVERRIDE] : [
+  './products.json',
+  './data/products.json',
+  '/products.json'
+];
+
+let BZ_PRODUCTS = [];
+
+const $status = document.getElementById('loadStatus');
+function setStatus(type, msg){
+  if(!$status) return;
+  $status.style.display = 'block';
+  $status.style.color = type==='ok' ? '#0f5132' : (type==='warn' ? '#664d03' : '#842029');
+  $status.style.background = type==='ok' ? '#d1e7dd' : (type==='warn' ? '#fff3cd' : '#f8d7da');
+  $status.style.border = '1px solid rgba(0,0,0,.08)';
+  $status.textContent = msg;
+}
+
+function fmtEUR(n){
+  const v = Number(n);
+  if(Number.isNaN(v)) return '€ ' + (n ?? '');
+  if(Number.isInteger(v)) return '€ ' + v;
+  return '€ ' + String(v);
+}
+function sanitizeList(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p => ({
+    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+    title: p.title || '',
+    brand: p.brand || p.department || '',
+    price: Number(p.price || 0),
+    image: p.image || 'logo.png',
+    description: p.description || '',
+    gallery: Array.isArray(p.gallery)? p.gallery : [],
+    category: p.category || '',
+    createdAt: p.createdAt || 0,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10),
+    whatsapp: p.whatsapp || p.phone || ''
+  }));
+}
+
+async function tryFetch(url){
+  const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), {cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const ct = (r.headers.get('content-type')||'').toLowerCase();
+  if(!ct.includes('application/json') && !ct.includes('text/plain')){
+    // ainda tentamos parsear
+  }
+  return r.json();
+}
+
+async function loadProducts(){
+  for(const src of CANDIDATES){
+    try{
+      const data = await tryFetch(src);
+      BZ_PRODUCTS = sanitizeList(data);
+      setStatus('ok', `Produtos carregados (${BZ_PRODUCTS.length}). Fonte: ${src}`);
+      return;
+    }catch(e){
+      // tenta próximo
     }
-    function sanitizeList(list){
-      if(!Array.isArray(list)) return [];
-      return list.map(p => ({
-        id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
-        title: p.title || '',
-        brand: p.brand || p.department || '',
-        price: Number(p.price || 0),
-        image: p.image || 'logo.png',
-        description: p.description || '',
-        gallery: Array.isArray(p.gallery)? p.gallery : [],
-        category: p.category || '',
-        createdAt: p.createdAt || 0,
-        stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
-      }));
+  }
+  BZ_PRODUCTS = [];
+  // Ajuda quando abrindo via file://
+  const isFile = location.protocol === 'file:';
+  if(isFile){
+    setStatus('warn','Abra o site via um servidor (http://) para ler o JSON. Dica: use Live Server no VS Code.');
+  }else{
+    setStatus('error','Não foi possível carregar o products.json. Verifique o caminho ou use ?src=URL.');
+  }
+}
+
+// ====== Modal Controller (sem alterar tema) ======
+const productModal = document.getElementById('productModal');
+const pmTitle = document.getElementById('pmTitle');
+const pmBrand = document.getElementById('pmBrand');
+const pmPrice = document.getElementById('pmPrice');
+const pmStock = document.getElementById('pmStock');
+const pmDesc = document.getElementById('pmDesc');
+const pmImage = document.getElementById('pmImage');
+const pmGallery = document.getElementById('pmGallery');
+const pmCta = document.getElementById('pmCta');
+
+const BZModal = {
+  async openById(id){
+    if(!BZ_PRODUCTS.length){ await loadProducts(); }
+    const product = BZ_PRODUCTS.find(p => String(p.id) === String(id));
+    if(product){ this.open(product); }
+  },
+  open(product){
+    pmTitle.textContent = product.title || '';
+    pmBrand.textContent = product.brand ? product.brand : '';
+    pmPrice.textContent = fmtEUR(product.price);
+    pmStock.textContent = 'Stock: ' + (product.stock ?? 0);
+    pmDesc.textContent = product.description || '—';
+    pmImage.src = product.image;
+    pmImage.alt = product.title || 'Product image';
+    pmGallery.innerHTML = '';
+    const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+    const images = [product.image, ...gallery.filter(Boolean)];
+    images.slice(0,8).forEach(src => {
+      const gi = document.createElement('img');
+      gi.src = src;
+      gi.alt = product.title;
+      gi.addEventListener('click', ()=>{ pmImage.src = src; });
+      pmGallery.appendChild(gi);
+    });
+    pmCta.innerHTML = '';
+    const btn = document.createElement('a');
+    const phone = (product.whatsapp||'').replace(/\D+/g,'');
+    const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
+    if(phone){
+      btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+      btn.target = '_blank';
+      btn.rel = 'noopener';
+      btn.textContent = 'Falar no WhatsApp';
+    } else {
+      btn.href = '#';
+      btn.textContent = 'WhatsApp não disponível';
+      btn.style.opacity = '.6'; btn.style.pointerEvents = 'none';
     }
-    async function loadProducts(){
-      try{
-        const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        const data = await r.json();
-        BZ_PRODUCTS = sanitizeList(data);
-      }catch(e){ BZ_PRODUCTS = []; }
-    }
+    btn.className = 'btn';
+    pmCta.appendChild(btn);
 
-    // ====== Modal Controller (sem alterar tema) ======
-    const productModal = document.getElementById('productModal');
-    const pmTitle = document.getElementById('pmTitle');
-    const pmBrand = document.getElementById('pmBrand');
-    const pmPrice = document.getElementById('pmPrice');
-    const pmStock = document.getElementById('pmStock');
-    const pmDesc = document.getElementById('pmDesc');
-    const pmImage = document.getElementById('pmImage');
-    const pmGallery = document.getElementById('pmGallery');
-    const pmCta = document.getElementById('pmCta');
+    productModal.style.display = 'flex';
+    productModal.setAttribute('aria-hidden','false');
+  },
+  close(){
+    productModal.style.display = 'none';
+    productModal.setAttribute('aria-hidden','true');
+  },
+  // utilitário para pré-carregar
+  preload: loadProducts
+};
+window.BZModal = BZModal;
 
-    const BZModal = {
-      async openById(id){
-        if(!BZ_PRODUCTS.length){ await loadProducts(); }
-        const product = BZ_PRODUCTS.find(p => String(p.id) === String(id));
-        if(product){ this.open(product); }
-      },
-      open(product){
-        pmTitle.textContent = product.title || '';
-        pmBrand.textContent = product.brand ? product.brand : '';
-        pmPrice.textContent = fmtEUR(product.price);
-        pmStock.textContent = 'Stock: ' + (product.stock ?? 0);
-        pmDesc.textContent = product.description || '—';
-        pmImage.src = product.image;
-        pmImage.alt = product.title || 'Product image';
-        pmGallery.innerHTML = '';
-        const gallery = Array.isArray(product.gallery) ? product.gallery : [];
-        const images = [product.image, ...gallery.filter(Boolean)];
-        images.slice(0,8).forEach(src => {
-          const gi = document.createElement('img');
-          gi.src = src;
-          gi.alt = product.title;
-          gi.addEventListener('click', ()=>{ pmImage.src = src; });
-          pmGallery.appendChild(gi);
-        });
-        pmCta.innerHTML = '';
-        const btn = document.createElement('a');
-        const phone = (product.whatsapp||'').replace(/\D+/g,'');
-        const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
-        if(phone){
-          btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
-          btn.target = '_blank';
-          btn.rel = 'noopener';
-          btn.textContent = 'Falar no WhatsApp';
-        } else {
-          btn.href = '#';
-          btn.textContent = 'WhatsApp não disponível';
-          btn.style.opacity = '.6'; btn.style.pointerEvents = 'none';
-        }
-        btn.className = 'btn';
-        pmCta.appendChild(btn);
+// Fechar ao clicar fora ou Esc
+productModal.addEventListener('click', (e)=>{ if(e.target === productModal){ BZModal.close(); } });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ BZModal.close(); } });
 
-        productModal.style.display = 'flex';
-        productModal.setAttribute('aria-hidden','false');
-      },
-      close(){
-        productModal.style.display = 'none';
-        productModal.setAttribute('aria-hidden','true');
-      },
-      // utilitário para pré-carregar
-      preload: loadProducts
-    };
-    window.BZModal = BZModal;
-
-    // Fechar ao clicar fora ou Esc
-    productModal.addEventListener('click', (e)=>{ if(e.target === productModal){ BZModal.close(); } });
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ BZModal.close(); } });
-
-    // Pré-carrega silenciosamente
-    loadProducts();
+// Pré-carrega silenciosamente
+loadProducts();
   </script>
 </body>
 </html>
