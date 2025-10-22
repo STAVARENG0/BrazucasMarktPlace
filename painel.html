@@ -282,6 +282,7 @@
   // ===== GitHub Config =====
   function ghGet(){ try{ return JSON.parse(localStorage.getItem('ghConfig')||'{}'); }catch(e){ return {}; } }
   function ghSet(cfg){ localStorage.setItem('ghConfig', JSON.stringify(cfg)); }
+  window.ghGet = ghGet; window.ghSet = ghSet;
   function readModalCfg(){
     return {
       repo: (document.getElementById('ghRepo')?.value||'').trim(),
@@ -698,9 +699,7 @@ async function submitEditForm(e){
 }
 // === /EDITAR PRODUTO ===
 
-  }
-
-  async function carregarProdutosGitHub(){
+async function carregarProdutosGitHub(){
     const cfg = ghGet();
     if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
     try{
