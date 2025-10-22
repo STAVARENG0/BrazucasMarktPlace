@@ -42,7 +42,7 @@
   .preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
   .preview input[type="radio"]{position:absolute;top:4px;left:4px;transform:scale(1.2)}
   .alert{margin-top:10px;padding:10px;border-radius:6px;text-align:center;display:none}
-  .alert.success{background:var(--success);color:#fff}
+  .alert.success{background:var(--success);color:#fff; font-weight:900}
   /* Modal */
   .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); justify-content:center; align-items:center; z-index:9999}
   .modal.show{display:flex !important}
@@ -95,7 +95,7 @@
         <div class="preview-container" id="preview"></div>
 
         <button type="submit" class="action">Adicionar Produto</button>
-        <div class="alert success" id="alertBox">✅ Produto salvo com sucesso no GitHub!</div>
+        <div class="alert success" id="alertBox">(PUBLICADO)</div>
       </form>
     </div>
 
@@ -403,7 +403,7 @@
     const putRes = await fetch(url, { method:'PUT', headers:{Authorization:`token ${cfg.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'}, body: JSON.stringify(body)});
     if(putRes.ok){ toast('Produto publicado no GitHub ✅', true);
       const box = document.getElementById('alertBox');
-      box.style.display='block'; box.classList.add('success'); box.textContent='✅ Produto salvo no GitHub!';
+      box.style.display='block'; box.classList.add('success'); box.textContent='(PUBLICADO)';
       setTimeout(()=> box.style.display='none', 2800);
       await carregarProdutosGitHub();
     } else {
@@ -430,13 +430,11 @@
     const valor = Number(document.getElementById('valor').value || 0);
     const descricao = document.getElementById('descricao').value;
     const departamento = document.getElementById('departamento').value;
-    const regiao = document.getElementById('regiao').value;
     const estoque = parseInt(document.getElementById('estoque').value || '0', 10);
     let whatsapp = normalizeIEPhone(document.getElementById('whatsapp').value || '');
     if(!whatsapp || whatsapp.length < 11){ alert('Número inválido. Use +353871234567 ou 0871234567'); return; }
     const county = document.getElementById('county').value;
     let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
-    const region = document.getElementById('regiao').value;
 
     // Upload de imagens para GitHub (pasta por produto) e usar apenas URLs no JSON
     const cfg = ghGet();
