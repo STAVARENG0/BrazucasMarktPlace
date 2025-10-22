@@ -1,17 +1,20 @@
 [
   {
-    "id": "demo-1",
-    "title": "Produto de Exemplo",
-    "brand": "Brazucas",
-    "price": 19.9,
-    "description": "Item de exemplo para testar o modal.",
+    "id": "1761169321323",
+    "title": "shorte",
+    "description": "shortes legal ",
     "department": "marketplace",
-    "category": "geral",
-    "stock": 5,
-    "image": "logo.png",
-    "gallery": [],
-    "createdAt": 1761052079453,
+    "category": "",
+    "price": 11,
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1761169321323/gemini-generated-image-n7k61sn7k61sn7k6.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1761169321323/gemini-generated-image-n7k61sn7k61sn7k6.png"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1761169324613,
     "status": "publicado",
-    "whatsapp": "353899999999"
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
