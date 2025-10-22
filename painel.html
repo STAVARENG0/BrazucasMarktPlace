@@ -586,7 +586,7 @@ function hydrateEditCountyCity(p){
 
 function editarProduto(i){
   __editIndex = i;
-  const p = window.produtos && window.produtos[i];
+  const p = produtos && produtos[i];
   if(!p) return;
 
   document.getElementById('editTitulo').value = p.title || '';
@@ -634,7 +634,7 @@ function editarProduto(i){
 async function submitEditForm(e){
   e.preventDefault();
   if(__editIndex<0) return false;
-  const p = window.produtos && window.produtos[__editIndex];
+  const p = produtos && produtos[__editIndex];
   if(!p) return false;
 
   const titulo = document.getElementById('editTitulo').value;
@@ -678,7 +678,7 @@ async function submitEditForm(e){
   }
 
   // apply
-  window.produtos[__editIndex] = {
+  produtos[__editIndex] = {
     ...p,
     title: titulo,
     price: valor,
@@ -691,7 +691,7 @@ async function submitEditForm(e){
     gallery: galleryUrls
   };
 
-  if(typeof salvarNoGitHub==='function'){ await salvarNoGitHub(window.produtos); }
+  if(typeof salvarNoGitHub==='function'){ await salvarNoGitHub(produtos); }
   if(typeof renderProdutos==='function'){ renderProdutos(); }
   closeEditModal();
   return false;
@@ -811,8 +811,8 @@ async function submitEditForm(e){
 
       if(!ownerRepo){
         // Sem config -> mantém lista local
-        if(!window.produtos) window.produtos = [];
-        return window.produtos;
+        if(!produtos) produtos = [];
+        return produtos;
       }
 
       let data = null;
@@ -829,21 +829,21 @@ async function submitEditForm(e){
       }
 
       if(isArr(data)){
-        window.produtos = sanitize(data);
+        produtos = sanitize(data);
       } else {
         // se o arquivo não existe ainda, mantém array atual
-        if(!isArr(window.produtos)) window.produtos = [];
+        if(!isArr(produtos)) produtos = [];
       }
-      return window.produtos;
+      return produtos;
     }catch(e){
-      if(!isArr(window.produtos)) window.produtos = [];
-      return window.produtos;
+      if(!isArr(produtos)) produtos = [];
+      return produtos;
     }
   };
 
   // Hidrata ao abrir a página, depois renderiza
   document.addEventListener('DOMContentLoaded', async function(){
-    if(!isArr(window.produtos)) window.produtos = [];
+    if(!isArr(produtos)) produtos = [];
     try{ await window.carregarProdutosGitHub(); }catch(_){}
     if(window.renderProdutos) window.renderProdutos();
   });
