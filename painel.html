@@ -51,7 +51,17 @@
   .gh-grid{display:grid; grid-template-columns:1fr; gap:8px}
   .gh-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:6px}
 </style>
-</head>
+<style>
+/* Edit Modal tweaks (inherit painel design) */
+#editModal .modal-content{max-width:520px;width:92vw}
+#editForm{display:flex;flex-direction:column;gap:10px}
+#editForm .grid-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preview-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.preview{position:relative;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border, #333);padding:6px;border-radius:8px}
+.preview img{width:72px;height:72px;object-fit:cover;border-radius:6px}
+#editModal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+#editModal .button{display:inline-block;cursor:pointer}
+</style></head>
 <body>
   <h1><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
   <button class="config-btn" id="openGithubModal" onclick="openGh()">Configurações</button>
@@ -159,7 +169,67 @@
         <button id="downloadProductsJson" class="action">Baixar products.json</button>
       </div>
       <div id="ghAlert" class="alert" style="display:none"></div>
+    
+  <!-- Modal: Editar Produto (usa o mesmo estilo do painel) -->
+  <div class="modal" id="editModal" aria-hidden="true">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeEditModal()" aria-label="Fechar">&times;</button>
+      <h2>Editar Produto</h2>
+      <form id="editForm" onsubmit="return submitEditForm(event)">
+        <label>Título</label>
+        <input id="editTitulo" type="text" required />
+
+        <label>Preço</label>
+        <input id="editValor" type="number" step="0.01" required />
+
+        <label>Descrição</label>
+        <textarea id="editDescricao" rows="4"></textarea>
+
+        <label>Departamento</label>
+        <select id="editDepartamento" required>
+          <option value="">Selecione...</option>
+          <option value="marketplace">Marketplace</option>
+          <option value="servicos">Serviços e Comércios</option>
+          <option value="eventos">Eventos</option>
+        </select>
+
+        <label>Estoque</label>
+        <input id="editEstoque" type="number" min="0" />
+
+        <label>WhatsApp do dono</label>
+        <input id="editWhatsapp" type="text" placeholder="+353871234567 ou 0871234567" />
+
+        <div class="grid-two">
+          <div>
+            <label>Condado</label>
+            <select id="editCounty" required></select>
+          </div>
+          <div>
+            <label>Cidade / Área</label>
+            <select id="editCity" required disabled></select>
+            <input id="editCityCustom" type="text" style="display:none" placeholder="Digite a cidade" />
+          </div>
+        </div>
+
+        <label class="checkbox-line">
+          <input type="checkbox" id="editChangeImages" /> Alterar imagens
+        </label>
+        <div id="editImagesBlock" style="display:none">
+          <label for="editFotos" class="button">Selecionar imagens</label>
+          <input id="editFotos" type="file" accept="image/*" multiple style="display:none" />
+          <div id="editPreview" class="preview-container"></div>
+        </div>
+
+        <div id="editCurrentGallery" class="preview-container"></div>
+
+        <div class="actions">
+          <button type="button" onclick="closeEditModal()">Cancelar</button>
+          <button type="submit">Salvar Alterações</button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
   </div>
 
 <script>
@@ -474,9 +544,160 @@
   });
 
   function excluirProduto(i){ produtos.splice(i,1); salvarNoGitHub(produtos).then(renderProdutos); }
-  function editarProduto(i){
-    const novo = prompt('Novo título:', produtos[i]?.title||'');
-    if(novo){ produtos[i].title = novo; salvarNoGitHub(produtos).then(renderProdutos); }
+  
+// === EDITAR PRODUTO (modal) ===
+let __editIndex = -1;
+function openEditModal(){
+  const m = document.getElementById('editModal');
+  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+}
+function closeEditModal(){
+  const m = document.getElementById('editModal');
+  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+}
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEditModal(); });
+
+function hydrateEditCountyCity(p){
+  const selCounty = document.getElementById('editCounty');
+  const selCity = document.getElementById('editCity');
+  const custom = document.getElementById('editCityCustom');
+  if(selCounty && window.COUNTY_CITIES){
+    selCounty.innerHTML = '<option value=\"\">Selecione o condado…</option>'
+      + Object.keys(COUNTY_CITIES).sort().map(c=>'<option value=\"'+c+'\">'+c+'</option>').join('');
+    selCounty.value = p.county || '';
+  }
+  if(selCity){
+    const list = (window.COUNTY_CITIES && COUNTY_CITIES[p.county]) || [];
+    selCity.disabled = !list.length;
+    selCity.innerHTML = '<option value=\"\">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
+      + list.map(n=>'<option value=\"'+n+'\">'+n+'</option>').join('');
+    if(list.includes(p.city)){ selCity.value = p.city; custom.style.display='none'; }
+    else if(p.city){ custom.style.display='block'; custom.value = p.city; }
+  }
+  selCounty?.addEventListener('change', function(){
+    const list = (window.COUNTY_CITIES && COUNTY_CITIES[this.value]) || [];
+    selCity.disabled = !list.length;
+    selCity.innerHTML = '<option value=\"\">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
+      + list.map(n=>'<option value=\"'+n+'\">'+n+'</option>').join('');
+    document.getElementById('editCityCustom').style.display='none';
+    document.getElementById('editCityCustom').value='';
+  });
+}
+
+function editarProduto(i){
+  __editIndex = i;
+  const p = window.produtos && window.produtos[i];
+  if(!p) return;
+
+  document.getElementById('editTitulo').value = p.title || '';
+  document.getElementById('editValor').value = Number(p.price||0);
+  document.getElementById('editDescricao').value = p.description || '';
+  document.getElementById('editDepartamento').value = p.department || '';
+  document.getElementById('editEstoque').value = (typeof p.stock==='number')? p.stock : parseInt(p.stock||'0',10);
+  document.getElementById('editWhatsapp').value = p.whatsapp || '';
+
+  hydrateEditCountyCity(p);
+
+  const cur = document.getElementById('editCurrentGallery');
+  if(cur){
+    cur.innerHTML = '';
+    const arr = Array.isArray(p.gallery) ? p.gallery : (p.image ? [p.image] : []);
+    if(arr.length){
+      arr.forEach((url,idx)=>cur.insertAdjacentHTML('beforeend', '<div class=\"preview\"><img src=\"'+url+'\" alt=\"img'+idx+'\"/></div>'));
+    }else{
+      cur.innerHTML = '<small>Sem imagens</small>';
+    }
+  }
+
+  const chk = document.getElementById('editChangeImages');
+  const blk = document.getElementById('editImagesBlock');
+  const prev = document.getElementById('editPreview');
+  const input = document.getElementById('editFotos');
+  if(chk && blk && input && prev){
+    chk.checked = false; blk.style.display='none'; prev.innerHTML=''; input.value='';
+    chk.onchange = ()=>{ blk.style.display = chk.checked ? 'block' : 'none'; };
+    input.onchange = (e)=>{
+      const files = Array.from(e.target.files||[]);
+      prev.innerHTML='';
+      files.forEach((f,ix)=>{
+        const url = URL.createObjectURL(f);
+        prev.insertAdjacentHTML('beforeend', '<div class=\"preview\">'
+          + '<input type=\"radio\" name=\"editCapa\" '+(ix===0?'checked':'')+' value=\"'+ix+'\">'
+          + '<img src=\"'+url+'\"></div>');
+      });
+    };
+  }
+
+  openEditModal();
+}
+
+async function submitEditForm(e){
+  e.preventDefault();
+  if(__editIndex<0) return false;
+  const p = window.produtos && window.produtos[__editIndex];
+  if(!p) return false;
+
+  const titulo = document.getElementById('editTitulo').value;
+  const valor  = Number(document.getElementById('editValor').value||0);
+  const descricao = document.getElementById('editDescricao').value;
+  const departamento = document.getElementById('editDepartamento').value;
+  const estoque = parseInt(document.getElementById('editEstoque').value||'0',10);
+  let whatsapp = (typeof normalizeIEPhone==='function') ? normalizeIEPhone(document.getElementById('editWhatsapp').value||'') : (document.getElementById('editWhatsapp').value||'').trim();
+  if(!whatsapp || whatsapp.replace(/\D/g,'').length < 7){ alert('Número inválido'); return false; }
+
+  const county = document.getElementById('editCounty').value;
+  let city = document.getElementById('editCity').value;
+  if(!city || city==='__custom__'){ city = (document.getElementById('editCityCustom').value||'').trim(); }
+
+  // images
+  const changeImages = document.getElementById('editChangeImages').checked;
+  let imageUrl = p.image || '';
+  let galleryUrls = Array.isArray(p.gallery) ? p.gallery.slice() : (p.image ? [p.image]: []);
+
+  if(changeImages){
+    const files = Array.from(document.getElementById('editFotos').files || []);
+    const checked = document.querySelector('input[name=\"editCapa\"]:checked');
+    let coverIndex = 0; if(checked) coverIndex = parseInt(checked.value||'0',10)||0;
+    galleryUrls = [];
+    if(files.length && typeof uploadGitHubFile==='function' && typeof ghGet==='function'){
+      const cfg = ghGet();
+      const productId = p.id || Date.now().toString();
+      const base = `images/${productId}`;
+      for(let i=0;i<files.length;i++){
+        const f = files[i];
+        const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
+        const nameNoExt = f.name.replace(/\.[^.]+$/, '');
+        const fname = (typeof slugifyName==='function'? slugifyName(nameNoExt) : nameNoExt).toLowerCase() + '.' + ext;
+        const path = `${base}/${fname}`;
+        const b64 = await readFileAsBase64(f);
+        const url = await uploadGitHubFile({ repo: cfg.repo, branch: cfg.branch, path, token: cfg.token, base64: b64, message: `Upload image for product ${productId}`});
+        galleryUrls.push(url);
+      }
+    }
+    imageUrl = galleryUrls.length ? galleryUrls[Math.min(coverIndex, galleryUrls.length-1)] : (galleryUrls[0]||imageUrl);
+  }
+
+  // apply
+  window.produtos[__editIndex] = {
+    ...p,
+    title: titulo,
+    price: valor,
+    description: descricao,
+    department: departamento,
+    county, city,
+    stock: estoque,
+    whatsapp,
+    image: imageUrl,
+    gallery: galleryUrls
+  };
+
+  if(typeof salvarNoGitHub==='function'){ await salvarNoGitHub(window.produtos); }
+  if(typeof renderProdutos==='function'){ renderProdutos(); }
+  closeEditModal();
+  return false;
+}
+// === /EDITAR PRODUTO ===
+
   }
 
   async function carregarProdutosGitHub(){
@@ -637,90 +858,23 @@
 
 
 <script>
-// ===== Patch: abrir/fechar "Configurações do GitHub" sem quebrar código existente =====
-(function(){
-  if (window.__GH_CONFIG_MODAL_PATCH__) return;
-  window.__GH_CONFIG_MODAL_PATCH__ = true;
-
-  function $(sel, root){ return (root||document).querySelector(sel); }
-  function getGhModal(){
-    return (
-      document.getElementById('ghConfigModal') ||
-      document.getElementById('githubConfigModal') ||
-      document.getElementById('configModal') ||
-      $('.github-config-modal') ||
-      $('[data-modal="github"]') ||
-      $('[aria-label="Configurações do GitHub"]')
-    );
-  }
-  function openGh(){
-    const m = getGhModal();
-    if(!m) return;
-    m.style.display = (getComputedStyle(m).display === 'none' ? 'flex' : m.style.display || 'flex');
-    m.setAttribute('aria-hidden','false');
-    // impede scroll de fundo, se aplicável
-    document.documentElement.style.overflow = 'hidden';
-  }
-  function closeGh(){
-    const m = getGhModal();
-    if(!m) return;
-    m.style.display = 'none';
-    m.setAttribute('aria-hidden','true');
-    document.documentElement.style.overflow = '';
-  }
-  // Expor helpers
-  window.openGhConfig = openGh;
-  window.closeGhConfig = closeGh;
-
-  // Delegação de abertura (tenta múltiplos seletores comuns no projeto)
-  const openSelectors = [
-    '#btnGithub','#btnConfig','#openGh','#openGithub','#openGhConfig',
-    '[data-action="github-config"]','[data-action="open-config"]','[data-open="github"]','[data-open="gh-config"]'
-  ];
-  function bindOpeners(){
-    openSelectors.forEach(sel=>{
-      document.querySelectorAll(sel).forEach(el=>{
-        el.addEventListener('click', function(e){ e.preventDefault(); openGh(); }, {capture:true});
-      });
-    });
-  }
-
-  // Fechamento por botão/overlay/Esc
-  function bindClosers(){
-    const m = getGhModal();
-    if(!m) return;
-    // Botões internos padrão
-    m.querySelectorAll('.modal-close,[data-close],.close,.btn-close').forEach(el=>{
-      el.addEventListener('click', function(e){ e.preventDefault(); closeGh(); }, {capture:true});
-    });
-    // Clique fora do conteúdo
-    m.addEventListener('click', function(e){
-      if(e.target === m) closeGh();
-    });
-    // ESC
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape'){ closeGh(); }
-    }, {capture:true});
-  }
-
-  // Se existir ícone/entrada de menu com texto "Configurações do GitHub", também vincula
-  function bindByText(){
-    const candidates = Array.from(document.querySelectorAll('a,button,[role="button"]'));
-    candidates.forEach(el=>{
-      const txt = (el.textContent||'').trim().toLowerCase();
-      if(txt === 'configurações do github' || txt === 'configurações github' || txt === 'github'){
-        el.addEventListener('click', function(e){ e.preventDefault(); openGh(); }, {capture:true});
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    bindOpeners();
-    bindClosers();
-    bindByText();
-  });
-
-})();
+// Re-adiciona controle do modal de Configurações do GitHub
+function openGh(){
+  const m = document.getElementById('githubModal');
+  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+}
+function closeGh(){
+  const m = document.getElementById('githubModal');
+  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+}
+document.addEventListener('click', function(e){
+  const modal = document.getElementById('githubModal');
+  if(!modal) return;
+  if(e.target === modal){ closeGh(); }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){ closeGh(); }
+});
 </script>
 
 </body>
