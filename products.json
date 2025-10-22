@@ -16,5 +16,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1761171327396",
+    "title": "shorte masculino",
+    "description": "shortes ",
+    "department": "marketplace",
+    "category": "",
+    "price": 7,
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1761171327396/gemini-generated-image-athp0tathp0tathp.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1761171327396/gemini-generated-image-athp0tathp0tathp.png"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1761171335775,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
