@@ -77,6 +77,10 @@
 .preview{position:relative; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); padding:6px; border-radius:8px}
 .preview img{width:72px; height:72px; object-fit:cover; border-radius:6px}
 .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:8px}
+</style><style>
+/* Hide scrollbar inside modal while keeping scroll behavior */
+.modal-content{ -ms-overflow-style: none; scrollbar-width: none; }
+.modal-content::-webkit-scrollbar{ display: none; width: 0; height: 0; }
 </style></head>
 <body>
   <h1><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
@@ -517,15 +521,69 @@ function closeEditModal(){
 }
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEditModal(); });
 
+
 function hydrateEditCountyCity(p){
   const selCounty = document.getElementById('editCounty');
   const selCity = document.getElementById('editCity');
   const custom = document.getElementById('editCityCustom');
+
+  // Populate counties
   if(selCounty && window.COUNTY_CITIES){
-    selCounty.innerHTML = '<option value=\"\">Selecione o condado…</option>'
-      + Object.keys(COUNTY_CITIES).sort().map(c=>'<option value=\"'+c+'\">'+c+'</option>').join('');
+    const counties = Object.keys(COUNTY_CITIES).sort();
+    selCounty.innerHTML = '<option value="">Selecione o condado…</option>'
+      + counties.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
     selCounty.value = p.county || '';
   }
+
+  // Helper to build cities list for current county (with custom option)
+  function buildCities(county, presetCity){
+    const list = (window.COUNTY_CITIES && COUNTY_CITIES[county]) || [];
+    selCity.disabled = !list.length;
+    const options = list.map(n=>'<option value="'+n+'">'+n+'</option>').join('');
+    // add "custom" option
+    const customOpt = '<option value="__custom__">Outra (digitar)</option>';
+    selCity.innerHTML = '<option value="">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
+      + options + customOpt;
+
+    // Preselect
+    if(list.includes(presetCity)){
+      selCity.value = presetCity;
+      custom.style.display='none';
+      custom.value='';
+    }else if(presetCity){
+      selCity.value = '__custom__';
+      custom.style.display='block';
+      custom.value = presetCity;
+    }else{
+      selCity.value = '';
+      custom.style.display='none';
+      custom.value='';
+    }
+  }
+
+  // Initial build based on product data
+  if(selCity){
+    buildCities(p.county || '', p.city || '');
+  }
+
+  // Listeners
+  if(selCounty){
+    selCounty.onchange = function(){
+      buildCities(this.value || '', '');
+    };
+  }
+  if(selCity){
+    selCity.onchange = function(){
+      if(this.value === '__custom__'){
+        custom.style.display='block';
+        custom.focus();
+      }else{
+        custom.style.display='none';
+      }
+    };
+  }
+}
+
   if(selCity){
     const list = (window.COUNTY_CITIES && COUNTY_CITIES[p.county]) || [];
     selCity.disabled = !list.length;
