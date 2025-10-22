@@ -59,6 +59,7 @@
   <div class="container">
     <div class="card">
       <form class="form" id="formProduto" novalidate novalidate>
+        <div id="editBadge" style="display:none;padding:10px;border-radius:10px;background:#fff3cd;border:1px solid #eadfce;color:#664d03;font-weight:600">Editando: <span id="editName"></span></div>
         <input id="titulo" placeholder="Título do produto" required type="text"/>
         <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
         <textarea id="descricao" placeholder="Descrição do produto"></textarea>
@@ -94,7 +95,8 @@
         <input accept="image/*" id="fotos" multiple type="file"/>
         <div class="preview-container" id="preview"></div>
 
-        <button type="submit" class="action">Adicionar Produto</button>
+        <button type="submit" id="submitBtn" class="action">Adicionar Produto</button>
+        <button type="button" id="cancelEdit" class="action" style="display:none;background:#ddd;color:#2b2b2b">Cancelar edição</button>
         <div class="alert success" id="alertBox">(PUBLICADO)</div>
       </form>
     </div>
@@ -346,6 +348,49 @@
 
   // ===== Produtos CRUD (com WhatsApp) =====
   let produtos = [];
+  // === Estado de edição ===
+  let editingIndex = null;
+
+  function fillFormFromProduct(p){
+    document.getElementById('titulo').value = p.title || '';
+    document.getElementById('valor').value = Number(p.price||0);
+    document.getElementById('descricao').value = p.description || '';
+    document.getElementById('departamento').value = p.department || 'marketplace';
+    document.getElementById('estoque').value = parseInt(p.stock||'0',10) || 0;
+    document.getElementById('whatsapp').value = p.whatsapp || '';
+    populateCounties();
+    document.getElementById('county').value = p.county || '';
+    populateCities();
+    const citySel = document.getElementById('city');
+    if(citySel){
+      if([...(citySel.options||[])].some(o=>o.value===p.city)){ citySel.value = p.city; }
+      else { citySel.value=''; }
+    }
+    // limpa preview; imagens serão trocadas apenas se novas forem enviadas
+    document.getElementById('preview').innerHTML='';
+    document.getElementById('fotos').value = '';
+  }
+
+  function startEdit(i){
+    editingIndex = i;
+    const p = produtos[i];
+    fillFormFromProduct(p);
+    document.getElementById('submitBtn').textContent = 'Salvar Alterações';
+    document.getElementById('cancelEdit').style.display = 'inline-block';
+    const b = document.getElementById('editBadge');
+    b.style.display='block'; document.getElementById('editName').textContent = p.title||('ID '+p.id);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function cancelEdit(){
+    editingIndex = null;
+    document.getElementById('formProduto').reset();
+    document.getElementById('preview').innerHTML='';
+    document.getElementById('submitBtn').textContent = 'Adicionar Produto';
+    document.getElementById('cancelEdit').style.display = 'none';
+    document.getElementById('editBadge').style.display='none';
+  }
+  document.getElementById('cancelEdit').addEventListener('click', cancelEdit);
+
   function renderProdutos(){
     const lista = document.getElementById('listaProdutos');
     lista.innerHTML = '';
@@ -424,6 +469,7 @@
     });
   });
 
+  
   document.getElementById('formProduto').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const titulo = document.getElementById('titulo').value;
@@ -436,17 +482,34 @@
     const county = document.getElementById('county').value;
     let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
 
-    // Upload de imagens para GitHub (pasta por produto) e usar apenas URLs no JSON
     const cfg = ghGet();
-    const productId = Date.now().toString();
     const files = Array.from(document.getElementById('fotos').files || []);
     let coverIndex = 0;
     const checked = document.querySelector('input[name="capa"]:checked');
     if(checked){ coverIndex = parseInt(checked.value || '0', 10) || 0; }
-    let galleryUrls = [];
+
+    // Se for edição, começamos do produto existente
+    let base = null;
+    if(editingIndex !== null && produtos[editingIndex]){
+      base = { ...produtos[editingIndex] };
+      base.title = titulo;
+      base.price = valor;
+      base.description = descricao;
+      base.department = departamento;
+      base.stock = estoque;
+      base.whatsapp = whatsapp;
+      base.county = county;
+      base.city = city;
+    }
+
+    // Upload de imagens apenas se houver novos arquivos selecionados
+    let galleryUrls = base ? (base.gallery || []).slice() : [];
+    let imageUrl = base ? (base.image || '') : '';
     if(cfg.repo && cfg.branch && cfg.token && files.length){
+      const productId = base ? base.id : Date.now().toString();
       const imgBase = `images/${productId}`;
       toast(`Enviando ${files.length} imagem(ns)...`);
+      galleryUrls = [];
       for(let i=0;i<files.length;i++){
         const f = files[i];
         const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
@@ -460,21 +523,29 @@
         });
         galleryUrls.push(url);
       }
+      imageUrl = galleryUrls.length ? galleryUrls[Math.min(coverIndex, galleryUrls.length-1)] : imageUrl;
     }
-    toast('Imagens enviadas com sucesso ✅', true);
-    const imageUrl = galleryUrls.length ? galleryUrls[Math.min(coverIndex, galleryUrls.length-1)] : '';
-    const produto = { id: productId, title: titulo, price: valor, description: descricao, department: departamento, county, city, stock: estoque, whatsapp, image: imageUrl, gallery: galleryUrls, createdAt: Date.now(), status:'publicado' };
-    produtos.push(produto);
-    await salvarNoGitHub(produtos);
-    e.target.reset();
-    document.getElementById('preview').innerHTML='';
+
+    if(editingIndex !== null && produtos[editingIndex]){
+      base.gallery = galleryUrls.length ? galleryUrls : base.gallery || [];
+      base.image = imageUrl || base.image || '';
+      produtos[editingIndex] = base;
+      await salvarNoGitHub(produtos);
+      cancelEdit();
+    } else {
+      const productId = Date.now().toString();
+      const produto = { id: productId, title: titulo, price: valor, description: descricao, department: departamento, county, city, stock: estoque, whatsapp, image: imageUrl, gallery: galleryUrls, createdAt: Date.now(), status:'publicado' };
+      produtos.push(produto);
+      await salvarNoGitHub(produtos);
+      e.target.reset();
+      document.getElementById('preview').innerHTML='';
+    }
     renderProdutos();
   });
+    
 
   function excluirProduto(i){ produtos.splice(i,1); salvarNoGitHub(produtos).then(renderProdutos); }
-  function editarProduto(i){
-    const novo = prompt('Novo título:', produtos[i]?.title||'');
-    if(novo){ produtos[i].title = novo; salvarNoGitHub(produtos).then(renderProdutos); }
+  function editarProduto(i){ startEdit(i); }
   }
 
   async function carregarProdutosGitHub(){

@@ -197,7 +197,8 @@
         gallery: Array.isArray(p.gallery)? p.gallery : [],
         category: p.category || '',
         createdAt: p.createdAt || 0,
-        stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+        stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10),
+        whatsapp: p.whatsapp || ''
       }));
     }
     async function loadProducts(){
@@ -247,12 +248,12 @@
         pmCta.innerHTML = '';
         const btn = document.createElement('a');
         const phone = (product.whatsapp||'').replace(/\D+/g,'');
-        const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
+        const msg = `VIM PELO BRAZUCAS MARKTPLACE PELO TITULO DO PRODUTO QUE A PESSOA CLICOU: ${product.title||''}`;
         if(phone){
           btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
           btn.target = '_blank';
           btn.rel = 'noopener';
-          btn.textContent = 'Falar no WhatsApp';
+          btn.textContent = 'Chamar no Whats';
         } else {
           btn.href = '#';
           btn.textContent = 'WhatsApp não disponível';
