@@ -58,10 +58,7 @@
 
   <div class="container">
     <div class="card">
-      <form class="form" id="formProduto"
-        ><div id="editBadge" style="display:none;padding:10px;border-radius:10px;background:#fff3cd;border:1px solid #eadfce;color:#664d03;font-weight:600;margin-bottom:8px">Editando: <span id="editName"></span></div>
-        <input type="hidden" id="__editingIndex" value="">
-        " novalidate novalidate>
+      <form class="form" id="formProduto" novalidate novalidate>
         <input id="titulo" placeholder="Título do produto" required type="text"/>
         <input id="valor" placeholder="Valor (€)" required step="0.01" type="number"/>
         <textarea id="descricao" placeholder="Descrição do produto"></textarea>
@@ -97,8 +94,7 @@
         <input accept="image/*" id="fotos" multiple type="file"/>
         <div class="preview-container" id="preview"></div>
 
-        <button type="submit" id="submitBtn" class="action">Adicionar Produto</button>
-        <button type="button" id="cancelEdit" class="action" style="display:none;background:#ddd;color:#2b2b2b">Cancelar edição</button>
+        <button type="submit" class="action">Adicionar Produto</button>
         <div class="alert success" id="alertBox">(PUBLICADO)</div>
       </form>
     </div>
@@ -470,6 +466,8 @@
     const produto = { id: productId, title: titulo, price: valor, description: descricao, department: departamento, county, city, stock: estoque, whatsapp, image: imageUrl, gallery: galleryUrls, createdAt: Date.now(), status:'publicado' };
     produtos.push(produto);
     await salvarNoGitHub(produtos);
+      if(window.carregarProdutosGitHub){ try{ await window.carregarProdutosGitHub(); }catch(_){} }
+      if(window.renderProdutos){ window.renderProdutos(); }
     e.target.reset();
     document.getElementById('preview').innerHTML='';
     renderProdutos();
@@ -530,8 +528,8 @@
     if(citySel){ citySel.addEventListener('change', toggleCityCustom); }
   });
 
-  // primeira render
-  renderProdutos();
+  // primeira render (hidrata do GitHub)
+  carregarProdutosGitHub().then(()=>renderProdutos());
 
 })();</script>
 
@@ -539,216 +537,101 @@
 
 <script>
 (function(){
-  // Guard to prevent double patch
-  if (window.__BZ_EDIT_PATCH__) return;
-  window.__BZ_EDIT_PATCH__ = true;
+  if (window.__BZ_READ_PRODUCTS_PATCH__) return;
+  window.__BZ_READ_PRODUCTS_PATCH__ = true;
 
-  // Utilities that may exist already
-  function $(id){ return document.getElementById(id); }
-  function getVal(id){ const el = $(id); return el ? el.value : ''; }
-  function setVal(id, v){ const el = $(id); if(el) el.value = v ?? ''; }
-  const submitBtn = $('submitBtn');
-  const cancelBtn = $('cancelEdit');
-  const editBadge = $('editBadge');
-  const editName = $('editName');
-  const editingHidden = $('__editingIndex');
-
-  // Produtos array fallback
-  window.produtos = Array.isArray(window.produtos) ? window.produtos : [];
-
-  // Region helpers may be defined by the page; guard calls
-  function safe(fn){ try { return fn && fn(); } catch(e){} }
-
-  function normInt(v, d){ const n = parseInt(v||d||'0',10); return isNaN(n)? (d||0) : n; }
-  function normNum(v, d){ const n = Number(v||d||0); return isNaN(n)? (d||0) : n; }
-
-  function enterEdit(i){
-    const idx = Number(i);
-    if(!(idx>=0) || !window.produtos[idx]) return;
-    const p = window.produtos[idx];
-    if (editingHidden) editingHidden.value = String(idx);
-
-    setVal('titulo', p.title || '');
-    setVal('valor', p.price != null ? p.price : '');
-    setVal('descricao', p.description || '');
-    setVal('departamento', p.department || 'marketplace');
-    setVal('estoque', p.stock != null ? p.stock : 0);
-    setVal('whatsapp', p.whatsapp || '');
-
-    // counties/cities
-    safe(window.populateCounties);
-    setVal('county', p.county || '');
-    safe(window.populateCities);
-    setVal('city', p.city || '');
-
-    // limpar previews e input de arquivos
-    const preview = $('preview'); if(preview) preview.innerHTML='';
-    const fotos = $('fotos'); if(fotos) fotos.value='';
-
-    if(submitBtn) submitBtn.textContent = 'Salvar Alterações';
-    if(cancelBtn) cancelBtn.style.display = 'inline-block';
-    if(editBadge) editBadge.style.display = 'block';
-    if(editName) editName.textContent = p.title || ('ID ' + (p.id||idx));
-    window.scrollTo({top:0, behavior:'smooth'});
-  }
-  window.editarProduto = enterEdit; // override editor to call our enterEdit
-
-  function exitEdit(){
-    if(editingHidden) editingHidden.value = '';
-    const form = $('formProduto'); if(form) form.reset();
-    const preview = $('preview'); if(preview) preview.innerHTML='';
-    if(submitBtn) submitBtn.textContent = 'Adicionar Produto';
-    if(cancelBtn) cancelBtn.style.display = 'none';
-    if(editBadge) editBadge.style.display = 'none';
-  }
-  if(cancelBtn) cancelBtn.addEventListener('click', exitEdit);
-
-  // Hook submit preserving existing salvarNoGitHub/ghGet if present
-  const form = $('formProduto');
-  if(form){
-    form.addEventListener('submit', async function(e){
-      try{
-        // If another listener called preventDefault already, we still want to control the flow
-        e.preventDefault();
-      }catch(_){}
-
-      const titulo = getVal('titulo');
-      const price = normNum(getVal('valor'), 0);
-      const descricao = getVal('descricao');
-      const departamento = getVal('departamento') || 'marketplace';
-      const estoque = normInt(getVal('estoque'), 0);
-      const whatsappRaw = getVal('whatsapp') || '';
-      const whatsapp = (window.normalizeIEPhone ? window.normalizeIEPhone(whatsappRaw) : whatsappRaw).replace(/\D+/g,'');
-      const county = getVal('county');
-      let city = getVal('city');
-      if(city === '__custom__' && $('cityCustom')){ city = $('cityCustom').value.trim(); }
-
-      // Current editing index
-      const idxStr = editingHidden ? editingHidden.value : '';
-      const isEditing = idxStr !== '';
-      const idx = isEditing ? Number(idxStr) : -1;
-
-      const cfg = (window.ghGet ? window.ghGet() : {}) || {};
-      const files = (function(){ const f=$('fotos'); return f ? Array.from(f.files||[]) : []; })();
-
-      // Prepare product base
-      let base = null;
-      if(isEditing && window.produtos[idx]){
-        base = Object.assign({}, window.produtos[idx]);
-      } else {
-        base = { id: Date.now().toString(), createdAt: Date.now(), status: 'publicado' };
-      }
-      base.title = titulo;
-      base.price = price;
-      base.description = descricao;
-      base.department = departamento;
-      base.stock = estoque;
-      base.whatsapp = whatsapp;
-      base.county = county;
-      base.city = city;
-      base.gallery = Array.isArray(base.gallery) ? base.gallery : [];
-      base.image = base.image || '';
-
-      // Upload de imagens só se selecionar novas
-      let galleryUrls = base.gallery.slice();
-      let imageUrl = base.image;
-      if(cfg.repo && cfg.branch && cfg.token && files.length){
-        const productId = base.id;
-        const imgBase = `images/${productId}`;
-        if(window.toast) toast(`Enviando ${files.length} imagem(ns)...`);
-        galleryUrls = [];
-        for(let i=0;i<files.length;i++){
-          const f = files[i];
-          const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
-          const fname = (window.slugifyName ? window.slugifyName(f.name.replace(/\.[^.]+$/, '')) : (f.name.replace(/\.[^.]+$/, ''))).toLowerCase() + '.' + ext;
-          const destPath = `${imgBase}/${fname}`;
-          const b64 = await (window.readFileAsBase64 ? window.readFileAsBase64(f) : new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(f); }));
-          if(window.toast) toast(`Enviando imagem ${i+1} de ${files.length}...`);
-          const url = await window.uploadGitHubFile({
-            repo: cfg.repo, branch: cfg.branch, path: destPath, token: cfg.token,
-            base64: b64, message: `Upload image for product ${productId}`
-          });
-          galleryUrls.push(url);
-        }
-        imageUrl = galleryUrls[0] || imageUrl;
-      }
-      base.gallery = galleryUrls;
-      base.image = imageUrl;
-
-      // Persist in array
-      if(isEditing && window.produtos[idx]){
-        window.produtos[idx] = base;
-      } else {
-        window.produtos.push(base);
-      }
-
-      // Salvar no GitHub se função existir
-      if(window.salvarNoGitHub){
-        await window.salvarNoGitHub(window.produtos);
-      }
-
-      // Recarregar do GitHub se função existir (para refletir o que foi salvo)
-      if(window.carregarProdutosGitHub){
-        try{ await window.carregarProdutosGitHub(); }catch(_){}
-      }
-
-      // Re-render da lista
-      if(window.renderProdutos) window.renderProdutos();
-
-      // Exit edit and clear file input
-      exitEdit();
-    }, { capture: true }); // capture to run even if other listeners exist
+  function isArr(a){ return Array.isArray(a); }
+  function sanitize(list){
+    if(!isArr(list)) return [];
+    return list.map(p => ({
+      id: p.id || (Date.now().toString() + Math.random().toString(16).slice(2)),
+      title: p.title || '',
+      price: Number(p.price || 0),
+      description: p.description || '',
+      department: p.department || 'marketplace',
+      county: p.county || '',
+      city: p.city || '',
+      stock: (typeof p.stock==='number')? p.stock : parseInt(p.stock||'0',10),
+      whatsapp: p.whatsapp || '',
+      image: p.image || '',
+      gallery: Array.isArray(p.gallery)? p.gallery : [],
+      createdAt: p.createdAt || Date.now(),
+      status: p.status || 'publicado'
+    }));
   }
 
-})();
-</script>
-
-
-<script>
-// ===== Hidratação robusta do products.json do GitHub (lista existente) =====
-(function(){
-  if (window.__BZ_HYDRATE_PATCH__) return;
-  window.__BZ_HYDRATE_PATCH__ = true;
-
-  async function fetchRawProductsFromRepo(){
-    try{
-      if(!window.ghGet) return null;
-      const cfg = window.ghGet() || {};
-      if(!cfg.repo || !cfg.branch) return null;
-      const repo = String(cfg.repo).trim(); // formato esperado: owner/repo
-      const branch = String(cfg.branch).trim();
-      const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/products.json`;
-      const r = await fetch(rawUrl + `?t=${Date.now()}`, { cache: 'no-store' });
-      if(!r.ok) return null;
-      const data = await r.json().catch(()=>null);
-      return Array.isArray(data) ? data : null;
-    }catch(e){ return null; }
+  async function fetchRaw(ownerRepo, branch, path){
+    const url = `https://raw.githubusercontent.com/${ownerRepo}/${branch}/${path}`;
+    const r = await fetch(url + `?t=${Date.now()}`, {cache:'no-store'});
+    if(!r.ok) throw new Error('RAW ' + r.status);
+    return r.json();
   }
-
-  async function hydrate(){
-    try{
-      // 1) Tenta usar a função nativa do painel, se existir
-      if (window.carregarProdutosGitHub){
-        try{ await window.carregarProdutosGitHub(); }catch(_){}
-      }
-      // 2) Se ainda não há produtos, tenta via raw.githubusercontent.com
-      if(!Array.isArray(window.produtos) || window.produtos.length === 0){
-        const data = await fetchRawProductsFromRepo();
-        if(Array.isArray(data)){
-          window.produtos = data;
-        }
-      }
-      // 3) Renderiza a tabela/lista
-      if(window.renderProdutos) window.renderProdutos();
-    }catch(_){
-      if(window.renderProdutos) window.renderProdutos();
+  async function fetchContentsAPI(ownerRepo, branch, path, token){
+    const url = `https://api.github.com/repos/${ownerRepo}/contents/${path}?ref=${encodeURIComponent(branch)}`;
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const r = await fetch(url, { headers, cache:'no-store' });
+    if(!r.ok) throw new Error('API ' + r.status);
+    const json = await r.json();
+    if(json && json.content){
+      const b64 = json.content.replace(/\n/g,'');
+      const txt = atob(b64);
+      return JSON.parse(txt);
     }
+    throw new Error('Invalid contents API response');
   }
 
-  // Hidrata na primeira carga e sempre que voltar do salvar
-  document.addEventListener('DOMContentLoaded', hydrate);
-  // Se houver botão manual de recarregar, você pode chamar: window.BZHydrate()
-  window.BZHydrate = hydrate;
+  window.carregarProdutosGitHub = async function(){
+    try{
+      const cfg = (window.ghGet ? window.ghGet() : {}) || {};
+      const ownerRepo = (cfg.repo||'').trim();     // ex: user/repo
+      const branch = (cfg.branch||'main').trim();
+      const token = (cfg.token||'').trim();
+      const path = (cfg.productsPath||'products.json').replace(/^\/+/,''); // permite custom path
+
+      if(!ownerRepo){
+        // Sem config -> mantém lista local
+        if(!window.produtos) window.produtos = [];
+        return window.produtos;
+      }
+
+      let data = null;
+      // 1) Tenta RAW (mais simples e rápido)
+      try{
+        data = await fetchRaw(ownerRepo, branch, path);
+      }catch(_){
+        // 2) Fallback API Contents
+        try{
+          data = await fetchContentsAPI(ownerRepo, branch, path, token);
+        }catch(__){
+          data = null;
+        }
+      }
+
+      if(isArr(data)){
+        window.produtos = sanitize(data);
+      } else {
+        // se o arquivo não existe ainda, mantém array atual
+        if(!isArr(window.produtos)) window.produtos = [];
+      }
+      return window.produtos;
+    }catch(e){
+      if(!isArr(window.produtos)) window.produtos = [];
+      return window.produtos;
+    }
+  };
+
+  // Hidrata ao abrir a página, depois renderiza
+  document.addEventListener('DOMContentLoaded', async function(){
+    if(!isArr(window.produtos)) window.produtos = [];
+    try{ await window.carregarProdutosGitHub(); }catch(_){}
+    if(window.renderProdutos) window.renderProdutos();
+  });
+
+  // Exponha um helper manual para recarregar
+  window.reloadFromGitHub = async function(){
+    await window.carregarProdutosGitHub();
+    if(window.renderProdutos) window.renderProdutos();
+  };
 })();
 </script>
 
