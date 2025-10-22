@@ -61,6 +61,22 @@
 .preview img{width:72px;height:72px;object-fit:cover;border-radius:6px}
 #editModal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
 #editModal .button{display:inline-block;cursor:pointer}
+</style><style>
+/* === Modal UX fixes === */
+.modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); justify-content:center; align-items:center; z-index:9999; overflow:auto;}
+.modal.show{display:flex !important}
+.modal-content{background:var(--cream); color:var(--ink); padding:20px; border-radius:12px; width:min(96vw,640px); border:1px solid var(--border); position:relative; box-shadow:0 14px 30px var(--shadow); max-height:90vh; overflow:auto;}
+.modal-close{position:absolute; top:10px; right:10px; background:#ff3c00; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:800}
+#editForm{display:flex; flex-direction:column; gap:10px}
+#editForm .grid-two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+@media (max-width:640px){
+  #editForm .grid-two{grid-template-columns:1fr}
+}
+/* previews */
+.preview-container{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+.preview{position:relative; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); padding:6px; border-radius:8px}
+.preview img{width:72px; height:72px; object-fit:cover; border-radius:6px}
+.actions{display:flex; justify-content:flex-end; gap:10px; margin-top:8px}
 </style></head>
 <body>
   <h1><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
@@ -171,64 +187,7 @@
       <div id="ghAlert" class="alert" style="display:none"></div>
     
   <!-- Modal: Editar Produto (usa o mesmo estilo do painel) -->
-  <div class="modal" id="editModal" aria-hidden="true">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeEditModal()" aria-label="Fechar">&times;</button>
-      <h2>Editar Produto</h2>
-      <form id="editForm" onsubmit="return submitEditForm(event)">
-        <label>Título</label>
-        <input id="editTitulo" type="text" required />
-
-        <label>Preço</label>
-        <input id="editValor" type="number" step="0.01" required />
-
-        <label>Descrição</label>
-        <textarea id="editDescricao" rows="4"></textarea>
-
-        <label>Departamento</label>
-        <select id="editDepartamento" required>
-          <option value="">Selecione...</option>
-          <option value="marketplace">Marketplace</option>
-          <option value="servicos">Serviços e Comércios</option>
-          <option value="eventos">Eventos</option>
-        </select>
-
-        <label>Estoque</label>
-        <input id="editEstoque" type="number" min="0" />
-
-        <label>WhatsApp do dono</label>
-        <input id="editWhatsapp" type="text" placeholder="+353871234567 ou 0871234567" />
-
-        <div class="grid-two">
-          <div>
-            <label>Condado</label>
-            <select id="editCounty" required></select>
-          </div>
-          <div>
-            <label>Cidade / Área</label>
-            <select id="editCity" required disabled></select>
-            <input id="editCityCustom" type="text" style="display:none" placeholder="Digite a cidade" />
-          </div>
-        </div>
-
-        <label class="checkbox-line">
-          <input type="checkbox" id="editChangeImages" /> Alterar imagens
-        </label>
-        <div id="editImagesBlock" style="display:none">
-          <label for="editFotos" class="button">Selecionar imagens</label>
-          <input id="editFotos" type="file" accept="image/*" multiple style="display:none" />
-          <div id="editPreview" class="preview-container"></div>
-        </div>
-
-        <div id="editCurrentGallery" class="preview-container"></div>
-
-        <div class="actions">
-          <button type="button" onclick="closeEditModal()">Cancelar</button>
-          <button type="submit">Salvar Alterações</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <!-- editModal moved out of githubModal -->
 </div>
   </div>
 
@@ -876,5 +835,83 @@ document.addEventListener('keydown', function(e){
 });
 </script>
 
+
+  <!-- Modal: Editar Produto (isolado) -->
+  <div class="modal" id="editModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content" role="document">
+      <button class="modal-close" onclick="closeEditModal()" aria-label="Fechar">&times;</button>
+      <h2 style="margin:0 0 10px">Editar Produto</h2>
+      <form id="editForm" onsubmit="return submitEditForm(event)">
+        <label>Título</label>
+        <input id="editTitulo" type="text" required />
+
+        <label>Preço</label>
+        <input id="editValor" type="number" step="0.01" required />
+
+        <label>Descrição</label>
+        <textarea id="editDescricao" rows="4"></textarea>
+
+        <label>Departamento</label>
+        <select id="editDepartamento" required>
+          <option value="">Selecione...</option>
+          <option value="marketplace">Marketplace</option>
+          <option value="servicos">Serviços e Comércios</option>
+          <option value="eventos">Eventos</option>
+        </select>
+
+        <label>Estoque</label>
+        <input id="editEstoque" type="number" min="0" />
+
+        <label>WhatsApp do dono</label>
+        <input id="editWhatsapp" type="text" placeholder="+353871234567 ou 0871234567" />
+
+        <div class="grid-two">
+          <div>
+            <label>Condado</label>
+            <select id="editCounty" required></select>
+          </div>
+          <div>
+            <label>Cidade / Área</label>
+            <select id="editCity" required disabled></select>
+            <input id="editCityCustom" type="text" style="display:none" placeholder="Digite a cidade" />
+          </div>
+        </div>
+
+        <label class="checkbox-line">
+          <input type="checkbox" id="editChangeImages" /> Alterar imagens
+        </label>
+        <div id="editImagesBlock" style="display:none">
+          <label for="editFotos" class="upload-btn">Selecionar imagens</label>
+          <input id="editFotos" type="file" accept="image/*" multiple style="display:none" />
+          <div id="editPreview" class="preview-container"></div>
+        </div>
+
+        <div id="editCurrentGallery" class="preview-container"></div>
+
+        <div class="actions">
+          <button type="button" class="action" onclick="closeEditModal()">Cancelar</button>
+          <button type="submit" class="action">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+// Robust modal handlers
+function openEditModal(){
+  const m = document.getElementById('editModal');
+  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+}
+function closeEditModal(){
+  const m = document.getElementById('editModal');
+  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+}
+(function(){
+  const edit = document.getElementById('editModal');
+  if(edit){
+    edit.addEventListener('click', (e)=>{ if(e.target===edit) closeEditModal(); });
+  }
+})();
+</script>
 </body>
 </html>
