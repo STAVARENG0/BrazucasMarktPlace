@@ -37,6 +37,7 @@
       width:min(1000px,96vw);
       padding:10px 14px 26px;
       text-align:center;
+      margin:0 auto; /* centraliza horizontalmente */
     }
 
     .logo{
@@ -125,13 +126,6 @@
       width:100%;
       max-width:1000px;
       margin:0 auto 60px;
-      text-align:left;
-    }
-    #productsSection h2{
-      font-size:18px;
-      font-weight:900;
-      margin:0 0 14px;
-      color:var(--ink);
       text-align:left;
     }
     .products-grid{
@@ -330,18 +324,6 @@
       pointer-events:none;
       cursor:not-allowed;
     }
-
-    /* Rodapé leve (opcional) */
-    footer{
-      font-size:11px;
-      color:var(--subtle);
-      text-align:center;
-      padding:30px 0 60px;
-    }
-    footer span{
-      font-weight:700;
-      color:var(--ink);
-    }
   </style>
 </head>
 <body>
@@ -363,7 +345,6 @@
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
-      <h2>Produtos recentes</h2>
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
   </main>
@@ -389,13 +370,9 @@
     </div>
   </div>
 
-  <footer>
-    Produtos publicados e enviados pela <span>Products Johnson</span>.
-  </footer>
-
   <script>
     // ====== Caminho do JSON público atualizado pelo painel ======
-    const PUBLIC_JSON = './products.json'; // mesmo arquivo gerenciado pelo painel Brazucas / Products Johnson
+    const PUBLIC_JSON = './products.json';
     let BZ_PRODUCTS = [];
 
     // ====== Helpers ======
@@ -554,7 +531,7 @@
         pmCta.innerHTML = '';
         const btn = document.createElement('a');
         const phone = (product.whatsapp||'').replace(/\D+/g,'');
-        const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
+        const msg = \`Vim através do Brazucas Marketplace para ver (\${product.title||''})\`;
         if(phone){
           btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
           btn.target = '_blank';
@@ -600,7 +577,7 @@
       });
     }
 
-    // ====== Inicialização (carrega Products Johnson e plota na página) ======
+    // ====== Inicialização ======
     async function init(){
       await loadProducts();
       renderList();
