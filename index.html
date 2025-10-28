@@ -29,8 +29,8 @@
       background: var(--bg);
       color:var(--ink);
       display:flex;
-      align-items:center;         /* centraliza vertical */
-      justify-content:center;     /* centraliza horizontal */
+      align-items:center;        /* centralizado vertical */
+      justify-content:center;    /* centralizado horizontal */
     }
 
     .wrap{
@@ -127,7 +127,6 @@
       margin:0 auto 60px;
       text-align:left;
     }
-
     .products-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(min(220px,44vw),1fr));
@@ -324,7 +323,6 @@
       pointer-events:none;
       cursor:not-allowed;
     }
-
   </style>
 </head>
 <body>
@@ -373,14 +371,14 @@
 
   <script>
     // ====== Caminho do JSON público atualizado pelo painel ======
-    // (ajuste para product.json)
-    const PUBLIC_JSON = './product.json';
+    const PUBLIC_JSON = './products.json';
     let BZ_PRODUCTS = [];
 
     // ====== Helpers ======
     function fmtEUR(n){
       const v = Number(n);
       if(Number.isNaN(v)) return '€ ' + (n ?? '');
+      // se tiver decimais, mostrar com 2 casas
       if(Number.isInteger(v)){
         return '€ ' + v;
       }
@@ -413,7 +411,7 @@
         if(!r.ok) throw new Error('HTTP '+r.status);
         const data = await r.json();
         BZ_PRODUCTS = sanitizeList(data)
-          .filter(p => p.status !== 'apagado');
+          .filter(p => p.status !== 'apagado'); // opcional
         // Ordena mais novos primeiro
         BZ_PRODUCTS.sort(function(a,b){
           return (b.createdAt||0) - (a.createdAt||0);
@@ -430,6 +428,7 @@
       if(!listEl) return;
       listEl.innerHTML = '';
 
+      // filtro de busca simples (título + descrição + cidade + condado)
       const term = (filterTerm||'').trim().toLowerCase();
       const arr = term
         ? BZ_PRODUCTS.filter(p=>{
@@ -487,6 +486,7 @@
 
     const BZModal = {
       async openById(id){
+        // garante que temos dados
         if(!BZ_PRODUCTS.length){
           await loadProducts();
         }
@@ -506,9 +506,10 @@
         pmImage.src = cover;
         pmImage.alt = product.title || 'Imagem do produto';
 
-        // miniaturas
+        // miniaturas (sem duplicar se só tiver uma imagem)
         pmGallery.innerHTML = '';
         const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+        // Junta capa + galeria e remove duplicados
         const merged = [cover, ...gallery.filter(Boolean)];
         const uniqueImages = [];
         merged.forEach(src => {
