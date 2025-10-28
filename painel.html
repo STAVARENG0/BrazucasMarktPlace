@@ -108,7 +108,7 @@
   .alert{margin-top:10px;padding:10px;border-radius:6px;text-align:center;display:none}
   .alert.success{background:var(--success);color:#fff}
 
-  /* Modal */
+  /* Generic Modal layout */
   .modal{
     display:none;
     position:fixed;
@@ -141,6 +141,8 @@
     cursor:pointer;
     font-weight:800
   }
+
+  /* GitHub modal grid */
   .gh-grid{display:grid; grid-template-columns:1fr; gap:8px}
   .gh-actions{
     display:flex;
@@ -149,8 +151,6 @@
     justify-content:flex-end;
     margin-top:6px
   }
-
-  /* overrides inside modal */
   .modal-content h2{
     color:#2b2b2b;
     font-weight:900;
@@ -158,13 +158,17 @@
   }
   .gh-row{display:flex; flex-direction:column; gap:6px}
   .modal-content label{color:#6b635a; font-size:13px}
-  .modal-content input{
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea{
     background:#fff;
     color:#222;
     border:1px solid var(--border);
     border-radius:10px;
     padding:12px;
-    width:100%
+    width:100%;
+    font-size:14px;
+    font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   }
   .gh-actions .action{
     background:var(--fbblue) !important;
@@ -176,6 +180,36 @@
   .modal-close{
     background:#ff3c00 !important;
     color:#fff !important
+  }
+
+  /* Edit modal extra layout */
+  #editModal .modal-content{
+    width:min(92vw,520px);
+    max-height:90vh;
+    overflow-y:auto;
+  }
+  #editModal h2{
+    margin-top:0;
+    font-weight:900;
+    font-size:18px;
+    color:var(--ink);
+  }
+  #editForm{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  #editGalleryPreview{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  #editGalleryPreview img{
+    width:60px;
+    height:60px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--border);
   }
 
   @media(max-width:768px){
@@ -287,6 +321,76 @@
     </div>
   </div>
 
+  <!-- Modal Editar Produto -->
+  <div class="modal" id="editModal" aria-hidden="true">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeEditModal()">X</button>
+      <h2>Editar Produto</h2>
+      <form id="editForm">
+        <input type="hidden" id="editIndex"/>
+        <div class="gh-row">
+          <label for="editTitulo">Título</label>
+          <input id="editTitulo" type="text" required />
+        </div>
+
+        <div class="gh-row">
+          <label for="editValor">Valor (€)</label>
+          <input id="editValor" type="number" step="0.01" required />
+        </div>
+
+        <div class="gh-row">
+          <label for="editDescricao">Descrição</label>
+          <textarea id="editDescricao" rows="3"></textarea>
+        </div>
+
+        <div class="gh-row">
+          <label for="editDepartamento">Departamento</label>
+          <select id="editDepartamento" required>
+            <option value="marketplace">Marketplace</option>
+            <option value="servicos">Serviços e Comércios</option>
+            <option value="eventos">Eventos</option>
+          </select>
+        </div>
+
+        <div class="gh-row">
+          <label for="editEstoque">Estoque</label>
+          <input id="editEstoque" type="number" min="0"/>
+        </div>
+
+        <div class="gh-row">
+          <label for="editWhatsapp">WhatsApp do dono (somente números, com DDI)</label>
+          <input id="editWhatsapp" type="text"/>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="gh-row">
+            <label for="editCounty">Condado (County)</label>
+            <select id="editCounty" required></select>
+          </div>
+          <div class="gh-row">
+            <label for="editCity">Cidade / Área</label>
+            <select id="editCity" required disabled>
+              <option value="">Selecione uma cidade…</option>
+              <option value="__custom__">Outra (digitar)</option>
+            </select>
+            <input id="editCityCustom" type="text" placeholder="Digite a cidade" style="display:none; padding:12px; border:1px solid var(--border); border-radius:10px;" />
+          </div>
+        </div>
+
+        <div class="gh-row">
+          <label>Galeria atual</label>
+          <div id="editGalleryPreview"></div>
+          <small style="font-size:12px;color:var(--muted);line-height:1.4;">(As imagens são geridas no upload inicial. Essa tela não reenvia imagens novas ainda.)</small>
+        </div>
+
+        <div class="gh-actions" style="justify-content:space-between;">
+          <button type="button" class="action" style="background:#6b6b6b" onclick="closeEditModal()">Cancelar</button>
+          <button type="submit" class="action">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 <script>
 (function(){
   // ===== Utils =====
@@ -320,7 +424,7 @@
     }catch(e){ return atob(b64||''); }
   }
 
-  // ===== Modal open/close =====
+  // ===== Modal Config GitHub open/close =====
   window.openGh = function(){
     try{ loadGithubConfig(); }catch(e){}
     const m = document.getElementById('githubModal');
@@ -330,7 +434,7 @@
     const m = document.getElementById('githubModal');
     if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
   };
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeGh(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') { closeGh(); closeEditModal(); } });
   const modalEl = document.getElementById('githubModal');
   modalEl.addEventListener('click', (e)=>{ if(e.target===modalEl) closeGh(); });
 
@@ -387,7 +491,7 @@
     showGhAlert('Configuração salva!', true);
   }
 
-  // Wire buttons
+  // Wire buttons (GitHub modal)
   document.getElementById('saveGithubConfig').addEventListener('click', saveGithubConfig);
   document.getElementById('testGithubConfig').addEventListener('click', testGithubConfig);
   document.getElementById('downloadProductsJson').addEventListener('click', downloadProducts);
@@ -469,6 +573,7 @@
 
   // ===== Produtos CRUD (com WhatsApp) =====
   let produtos = [];
+
   function renderProdutos(){
     const lista = document.getElementById('listaProdutos');
     lista.innerHTML = '';
@@ -492,7 +597,7 @@
       lista.appendChild(tr);
     });
     // wire edit/delete
-    lista.querySelectorAll('button[data-edit]').forEach(btn=>btn.onclick=()=>editarProduto(Number(btn.dataset.edit)));
+    lista.querySelectorAll('button[data-edit]').forEach(btn=>btn.onclick=()=>openEditModal(Number(btn.dataset.edit)));
     lista.querySelectorAll('button[data-del]').forEach(btn=>btn.onclick=()=>excluirProduto(Number(btn.dataset.del)));
   }
 
@@ -556,6 +661,8 @@
       box.classList.add('success');
       box.textContent='✅ Produto enviado pela Products Johnson!';
       setTimeout(()=> box.style.display='none', 2800);
+
+      // Recarrega do GitHub para garantir sincronizado (IMPORTANTE pra lista não sumir no refresh)
       await carregarProdutosGitHub();
     } else {
       alert('Erro ao salvar no GitHub.');
@@ -661,17 +768,161 @@
     produtos.splice(i,1);
     salvarNoGitHub(produtos).then(renderProdutos);
   }
-  function editarProduto(i){
-    const novo = prompt('Novo título:', produtos[i]?.title||'');
-    if(novo){
-      produtos[i].title = novo;
-      salvarNoGitHub(produtos).then(renderProdutos);
+
+  // ======== EDIT MODAL FUNCTIONS ========
+
+  // popular selects Condado/Cidade no modal de edição
+  function populateEditCounties(selectedCounty){
+    const sel = document.getElementById('editCounty');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">Selecione o condado…</option>' +
+      Object.keys(COUNTY_CITIES).sort().map(function(c){
+        return '<option value="'+c+'">'+c+'</option>';
+      }).join('') +
+      '<option value="__custom__">Outro (digitar)</option>';
+    if(selectedCounty){
+      sel.value = selectedCounty;
+      if(!sel.value){ // caso county não exista na lista
+        sel.value = '__custom__';
+        // se for custom deixar city livre depois
+      }
     }
   }
 
+  function populateEditCities(){
+    const countyEl = document.getElementById('editCounty');
+    const county = countyEl ? countyEl.value : '';
+    const citySel = document.getElementById('editCity');
+    if(!citySel) return;
+    const list = COUNTY_CITIES[county] || [];
+    citySel.disabled = !list.length;
+    citySel.innerHTML =
+      '<option value="">'+(list.length? 'Selecione uma cidade…' : 'Selecione o condado primeiro…')+'</option>' +
+      list.map(function(n){
+        return '<option value="'+n+'">'+n+'</option>';
+      }).join('') +
+      '<option value="__custom__">Outra (digitar)</option>';
+  }
+
+  function toggleEditCityCustom(){
+    var sel = document.getElementById('editCity');
+    var input = document.getElementById('editCityCustom');
+    if(!sel || !input) return;
+    if(sel.value === '__custom__'){
+      input.style.display='block';
+      input.focus();
+    } else {
+      input.style.display='none';
+    }
+  }
+
+  function openEditModal(i){
+    const p = produtos[i];
+    if(!p) return;
+
+    document.getElementById('editIndex').value = i;
+    document.getElementById('editTitulo').value = p.title || '';
+    document.getElementById('editValor').value = Number(p.price||0);
+    document.getElementById('editDescricao').value = p.description || '';
+    document.getElementById('editDepartamento').value = p.department || 'marketplace';
+    document.getElementById('editEstoque').value = p.stock ?? 0;
+    document.getElementById('editWhatsapp').value = p.whatsapp || '';
+
+    // condado / cidade
+    populateEditCounties(p.county || '');
+    populateEditCities();
+    const editCountyEl = document.getElementById('editCounty');
+    const editCitySel = document.getElementById('editCity');
+    const editCityInput = document.getElementById('editCityCustom');
+
+    // garantir que cidade esteja preenchida corretamente
+    if((COUNTY_CITIES[p.county||'']||[]).includes(p.city)){
+      // cidade está na lista
+      editCitySel.disabled = false;
+      editCitySel.value = p.city;
+      editCityInput.style.display='none';
+      editCityInput.value = '';
+    }else{
+      // cidade custom
+      editCitySel.disabled = false;
+      editCitySel.value = '__custom__';
+      editCityInput.style.display='block';
+      editCityInput.value = p.city || '';
+    }
+
+    // galeria preview
+    const previewWrap = document.getElementById('editGalleryPreview');
+    previewWrap.innerHTML = '';
+    const imgs = [];
+    if(p.image) imgs.push(p.image);
+    if(Array.isArray(p.gallery)) imgs.push(...p.gallery);
+    const uniq = [];
+    imgs.forEach(src=>{ if(src && !uniq.includes(src)) uniq.push(src); });
+    uniq.slice(0,12).forEach(src=>{
+      const im = document.createElement('img');
+      im.src = src;
+      im.alt = 'Imagem do produto';
+      previewWrap.appendChild(im);
+    });
+
+    // abrir modal
+    const m = document.getElementById('editModal');
+    if(m){
+      m.classList.add('show');
+      m.setAttribute('aria-hidden','false');
+    }
+  }
+  window.openEditModal = openEditModal;
+
+  function closeEditModal(){
+    const m = document.getElementById('editModal');
+    if(m){
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden','true');
+    }
+  }
+  window.closeEditModal = closeEditModal;
+
+  // salva alterações do modal de edição
+  document.getElementById('editForm').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    const idx = parseInt(document.getElementById('editIndex').value,10);
+    if(isNaN(idx) || !produtos[idx]){ closeEditModal(); return; }
+
+    const editedCounty = document.getElementById('editCounty').value || '';
+    let editedCitySel = document.getElementById('editCity').value || '';
+    if(editedCitySel==='__custom__'){
+      editedCitySel = (document.getElementById('editCityCustom').value||'').trim();
+    }
+
+    let editedWhatsapp = normalizeIEPhone(document.getElementById('editWhatsapp').value || '');
+    if(!editedWhatsapp || editedWhatsapp.length < 11){
+      alert('Número inválido. Use +353871234567 ou 0871234567');
+      return;
+    }
+
+    produtos[idx].title = document.getElementById('editTitulo').value || '';
+    produtos[idx].price = Number(document.getElementById('editValor').value || 0);
+    produtos[idx].description = document.getElementById('editDescricao').value || '';
+    produtos[idx].department = document.getElementById('editDepartamento').value || 'marketplace';
+    produtos[idx].stock = parseInt(document.getElementById('editEstoque').value || '0', 10);
+    produtos[idx].whatsapp = editedWhatsapp;
+    produtos[idx].county = editedCounty;
+    produtos[idx].city = editedCitySel;
+
+    await salvarNoGitHub(produtos);
+    renderProdutos();
+    closeEditModal();
+  });
+
+  // ===== Carregar produtos do GitHub (para persistência após reload) =====
   async function carregarProdutosGitHub(){
     const cfg = ghGet();
-    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){
+      // sem config ainda -> só renderiza lista em branco
+      renderProdutos();
+      return;
+    }
     try{
       const res = await fetch('https://api.github.com/repos/'+cfg.repo+'/contents/'+cfg.path+'?ref='+cfg.branch, {
         headers:{ Authorization:'token '+cfg.token }
@@ -680,14 +931,17 @@
         const data = await res.json();
         const raw = decodeBase64Utf8(data.content || '');
         produtos = JSON.parse(raw || '[]');
-        renderProdutos();
+      }else{
+        produtos = [];
       }
     }catch(e){
       console.error('Erro ao carregar produtos:', e);
+      produtos = [];
     }
+    renderProdutos();
   }
 
-  // ==== County & City selector ====
+  // ==== County & City selector (form de criação) ====
   const COUNTY_CITIES = {"Carlow": ["Carlow Town", "Tullow", "Bagenalstown", "Clonegal", "Rathvilly", "Borris", "Hacketstown", "Ballon", "Fenagh", "Nurney"], "Cavan": ["Cavan Town", "Bailieborough", "Virginia", "Kingscourt", "Cootehill", "Belturbet", "Ballyjamesduff", "Arvagh", "Killeshandra", "Mullagh"], "Clare": ["Ennis", "Shannon", "Kilrush", "Ennistymon", "Kilkee", "Lahinch", "Lisdoonvarna", "Miltown Malbay", "Sixmilebridge", "Tulla", "Newmarket-on-Fergus", "Scarriff", "Killaloe", "Bodyke", "Quin"], "Cork": ["Cork City", "Ballincollig", "Carrigaline", "Cobh", "Mallow", "Midleton", "Youghal", "Clonakilty", "Bandon", "Skibbereen", "Kinsale", "Macroom", "Bantry", "Fermoy", "Charleville", "Passage West", "Kanturk", "Mitchelstown", "Glanmire", "Douglas", "Carrigtwohill", "Coachford", "Buttevant", "Millstreet", "Drimoleague"], "Donegal": ["Letterkenny", "Buncrana", "Ballybofey", "Bundoran", "Donegal Town", "Killybegs", "Derrybeg", "Gweedore", "Glenties", "Carndonagh", "Moville", "Ramelton", "Rathmullan", "Milford", "Falcarragh", "Dungloe", "Ballyshannon", "Lifford"], "Dublin": ["Dublin 1", "Dublin 2", "Dublin 3", "Dublin 4", "Dublin 5", "Dublin 6", "Dublin 6W", "Dublin 7", "Dublin 8", "Dublin 9", "Dublin 10", "Dublin 11", "Dublin 12", "Dublin 13", "Dublin 14", "Dublin 15", "Dublin 16", "Dublin 17", "Dublin 18", "Dublin 20", "Dublin 22", "Dublin 24", "Dún Laoghaire", "Blackrock", "Stillorgan", "Dundrum", "Sandyford", "Ranelagh", "Rathmines", "Rathgar", "Terenure", "Templeogue", "Clonskeagh", "Donnybrook", "Ballsbridge", "Irishtown", "Sandycove", "Monkstown", "Dalkey", "Killiney", "Shankill", "Lucan", "Palmerstown", "Chapelizod", "Clondalkin", "Tallaght", "Rathfarnham", "Knocklyon", "Blanchardstown", "Castleknock", "Clonsilla", "Swords", "Malahide", "Portmarnock", "Howth", "Baldoyle", "Donabate", "Skerries", "Rush", "Lusk", "Balbriggan", "Raheny", "Artane", "Beaumont", "Santry", "Drumcondra", "Phibsborough", "Cabra", "Finglas", "Ballymun", "Coolock", "Clontarf"], "Galway": ["Galway City", "Athenry", "Tuam", "Ballinasloe", "Loughrea", "Oranmore", "Gort", "Portumna", "Moycullen", "Claregalway", "Kinvara", "Headford", "Oughterard", "Barna", "Spiddal", "Carraroe (An Cheathrú Rua)", "Inverin", "Leenane", "Mountbellew", "Dunmore", "Glenamaddy", "Ballinderreen", "Craughwell", "Abbeyknockmoy", "Ahascragh", "Ardrahan", "Ballygar", "Peterswell", "Clifden", "Recess", "Roundstone"], "Kerry": ["Tralee", "Killarney", "Listowel", "Dingle", "Kenmare", "Cahersiveen", "Killorglin", "Castleisland", "Sneem", "Waterville", "Annascaul", "Ballybunion"], "Kildare": ["Naas", "Newbridge", "Maynooth", "Celbridge", "Leixlip", "Athy", "Kildare Town", "Kilcullen", "Monasterevin", "Clane", "Sallins", "Rathangan", "Prosperous"], "Kilkenny": ["Kilkenny City", "Callan", "Thomastown", "Graiguenamanagh", "Castlecomer", "Bennettsbridge", "Gowran", "Urlingford", "Mooncoin", "Piltown", "Freshford"], "Laois": ["Portlaoise", "Portarlington", "Mountmellick", "Abbeyleix", "Stradbally", "Durrow", "Mountrath", "Rathdowney", "Emo", "Ballylinan"], "Leitrim": ["Carrick-on-Shannon", "Manorhamilton", "Ballinamore", "Mohill", "Drumshanbo", "Dromahair"], "Limerick": ["Limerick City", "Newcastle West", "Abbeyfeale", "Kilmallock", "Rathkeale", "Askeaton", "Adare", "Croom", "Bruff"], "Longford": ["Longford Town", "Granard", "Lanesborough", "Edgeworthstown", "Ballymahon", "Newtownforbes"], "Louth": ["Dundalk", "Drogheda", "Ardee", "Blackrock", "Carlingford", "Castlebellingham", "Termonfeckin"], "Mayo": ["Castlebar", "Ballina", "Westport", "Claremorris", "Ballinrobe", "Swinford", "Belmullet", "Foxford", "Ballyhaunis", "Louisburgh", "Newport", "Charlestown"], "Meath": ["Navan", "Ashbourne", "Trim", "Kells", "Laytown–Bettystown", "Ratoath", "Dunboyne", "Duleek", "Kildalkey", "Athboy", "Enfield", "Oldcastle"], "Monaghan": ["Monaghan Town", "Carrickmacross", "Castleblayney", "Clones", "Ballybay", "Emyvale"], "Offaly": ["Tullamore", "Birr", "Edenderry", "Clara", "Banagher", "Ferbane", "Daingean", "Kilcormac", "Shannonbridge"], "Roscommon": ["Roscommon Town", "Boyle", "Castlerea", "Ballaghaderreen", "Strokestown", "Lanesborough", "Elphin"], "Sligo": ["Sligo Town", "Tubbercurry", "Enniscrone", "Collooney", "Ballymote", "Grange", "Strandhill"], "Tipperary": ["Clonmel", "Nenagh", "Thurles", "Tipperary Town", "Carrick-on-Suir", "Templemore", "Cashel", "Roscrea", "Cahir", "Borrisokane"], "Waterford": ["Waterford City", "Tramore", "Dungarvan", "Lismore", "Cappoquin", "Kilmacthomas"], "Westmeath": ["Athlone", "Mullingar", "Moate", "Kinnegad", "Castlepollard", "Kilbeggan", "Rochfortbridge"], "Wexford": ["Wexford Town", "Gorey", "Enniscorthy", "New Ross", "Rosslare", "Courtown", "Bunclody", "Taghmon"], "Wicklow": ["Bray", "Greystones", "Arklow", "Wicklow Town", "Blessington", "Baltinglass", "Newtownmountkennedy", "Rathnew", "Kilcoole", "Roundwood"]};
 
   function populateCounties(){
@@ -727,17 +981,27 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
+  // Eventos county/city do modal de edição
+  document.getElementById('editCounty').addEventListener('change', function(){
+    populateEditCities();
+  });
+  document.getElementById('editCity').addEventListener('change', function(){
+    toggleEditCityCustom();
+  });
+
+  // ===== Init on DOMContentLoaded =====
+  document.addEventListener('DOMContentLoaded', async function(){
+    // preparar selects do formulário de criação
     populateCounties();
     var countyEl = document.getElementById('county');
     if(countyEl){ countyEl.addEventListener('change', populateCities); }
 
     var citySel = document.getElementById('city');
     if(citySel){ citySel.addEventListener('change', toggleCityCustom); }
-  });
 
-  // primeira render
-  renderProdutos();
+    // carregar lista inicial direto do GitHub (assim não some ao atualizar a página)
+    await carregarProdutosGitHub();
+  });
 
 })();</script>
 

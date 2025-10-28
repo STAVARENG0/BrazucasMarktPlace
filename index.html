@@ -424,7 +424,8 @@
         stock: (typeof p.stock === 'number') ? p.stock : parseInt(p.stock || '0', 10),
         whatsapp: p.whatsapp || '',
         county: p.county || '',
-        city: p.city || ''
+        city: p.city || '',
+        status: p.status || 'publicado'
       }));
     }
 
@@ -529,11 +530,19 @@
         pmImage.src = cover;
         pmImage.alt = product.title || 'Imagem do produto';
 
-        // miniaturas
+        // miniaturas (sem duplicar se só tiver uma imagem)
         pmGallery.innerHTML = '';
         const gallery = Array.isArray(product.gallery) ? product.gallery : [];
-        const images = [cover, ...gallery.filter(Boolean)];
-        images.slice(0,8).forEach(src => {
+        // Junta capa + galeria e remove duplicados
+        const merged = [cover, ...gallery.filter(Boolean)];
+        const uniqueImages = [];
+        merged.forEach(src => {
+          if(src && !uniqueImages.includes(src)){
+            uniqueImages.push(src);
+          }
+        });
+
+        uniqueImages.slice(0,8).forEach(src => {
           const gi = document.createElement('img');
           gi.src = src;
           gi.alt = product.title || 'foto do produto';
