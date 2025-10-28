@@ -13,19 +13,23 @@
       --input-w: 560px;   /* largura da busca alinhada ao MARKETPLACE */
       --gap-under-word: 8px; /* espaço entre a palavra e a barra (>=0) */
 
-      /* === NOVA PALETA === */
+      /* === NOVA PALETA LIMPA === */
       --white:#ffffff;
+      --bg-page:#ffffff;
       --text-dark:#1a1a1a;
-      --muted:#777;
+      --text-muted:#777;
       --shadow-rgba:rgba(0,0,0,.16);
 
-      /* fundo branco liso (site e modal) */
-      --app-bg:#ffffff;
+      /* Azul estilo Facebook */
+      --accent:#0866ff;
+      --accent-hover:#0753d6;
+      --accent-text:#ffffff;
 
-      /* azul estilo Facebook */
-      --btn-bg:#0866ff;
-      --btn-bg-hover:#0753d6;
-      --btn-text:#ffffff;
+      /* fundo backdrop do modal */
+      --backdrop:rgba(0,0,0,.85);
+
+      /* borda sutil */
+      --border-soft:rgba(0,0,0,.1);
     }
 
     *{box-sizing:border-box}
@@ -34,7 +38,7 @@
     body{
       margin:0;
       font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: var(--app-bg);
+      background: var(--bg-page);
       display:flex;
       align-items:flex-start;
       justify-content:center;
@@ -83,14 +87,14 @@
       padding:10px 16px;
       font-weight:700;
       font-size:14px;
-      background:var(--btn-bg);
-      color:var(--btn-text);
+      background:var(--accent);
+      color:var(--accent-text);
       box-shadow:0 6px 14px var(--shadow-rgba), inset 0 -2px 0 rgba(0,0,0,.18);
       cursor:pointer;
       transition:background-color .12s ease,transform .12s ease;
     }
     .search button:hover{
-      background:var(--btn-bg-hover);
+      background:var(--accent-hover);
       transform:translateY(-1px)
     }
     .search button:active{
@@ -119,13 +123,13 @@
       letter-spacing:.02em;
       text-transform:uppercase;
       font-size:13.5px;
-      color:var(--btn-text);
-      background:var(--btn-bg);
+      color:var(--accent-text);
+      background:var(--accent);
       box-shadow:0 6px 14px var(--shadow-rgba), inset 0 -2px 0 rgba(0,0,0,.15);
       transition:background-color .12s ease, transform .12s ease, filter .12s ease;
     }
     .btn:hover{
-      background:var(--btn-bg-hover);
+      background:var(--accent-hover);
       transform:translateY(-1px);
       filter:brightness(1.03)
     }
@@ -146,46 +150,63 @@
       left:0;
       width:100%;
       height:100%;
-      background:rgba(0,0,0,0.85);
+      background:var(--backdrop);
       justify-content:center;
       align-items:center;
       z-index:6000;
     }
 
     .modal-content {
-      background: var(--app-bg);
-      padding:20px;
+      background: var(--bg-page);          /* MESMA PALETA DO SITE */
+      color:var(--text-dark);
+      padding:20px 20px 24px;
       border-radius:16px;
       max-width:760px;
       width:min(92vw,760px);
       text-align:left;
-      color:var(--text-dark);
       position:relative;
-      border:1px solid rgba(0,0,0,0.1);
+      border:1px solid var(--border-soft);
       box-shadow:0 20px 40px rgba(0,0,0,.6);
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* barrinha azul no topo pra ficar com a cara da paleta */
+    .modal-content::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:4px;
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      background:var(--accent);
     }
 
     .modal-close{
       position:absolute;
       top:10px;
       right:10px;
-      background:var(--btn-bg);
+      background:var(--accent);
       border:none;
-      color:var(--btn-text);
+      color:var(--accent-text);
       font-weight:bold;
       padding:6px 12px;
       border-radius:6px;
       cursor:pointer;
       transition:background-color .12s ease;
+      box-shadow:0 6px 14px var(--shadow-rgba), inset 0 -2px 0 rgba(0,0,0,.2);
     }
     .modal-close:hover{
-      background:var(--btn-bg-hover);
+      background:var(--accent-hover);
     }
 
     .product-modal-body{
       display:grid;
       grid-template-columns:1fr;
       gap:14px;
+      margin-top:16px;
     }
 
     .product-title{
@@ -196,7 +217,7 @@
     }
 
     .product-brand{
-      color:var(--muted);
+      color:var(--text-muted);
       margin:0 0 8px;
       font-weight:600;
     }
@@ -208,7 +229,7 @@
     }
 
     .product-stock{
-      color:var(--muted);
+      color:var(--text-muted);
       font-size:12px;
       margin-bottom:10px;
       font-weight:500;
@@ -245,27 +266,28 @@
       max-height:340px;
       border-radius:12px;
       object-fit:contain;
-      background:rgba(0,0,0,.05);
+      background:rgba(0,0,0,.03);
       box-shadow:0 12px 28px rgba(0,0,0,.3);
+      border:1px solid var(--border-soft);
     }
 
-    /* botão CTA dentro do modal com mesma paleta azul */
-    .btn-whatsapp{
+    /* botão CTA dentro do modal com a mesma paleta azul */
+    .btn-cta{
       display:inline-block;
       text-decoration:none;
       font-weight:700;
       padding:12px 14px;
       border-radius:28px;
-      background:var(--btn-bg);
-      color:var(--btn-text);
-      box-shadow:0 8px 20px rgba(0,0,0,.25);
+      background:var(--accent);
+      color:var(--accent-text);
+      box-shadow:0 8px 20px rgba(0,0,0,.25), inset 0 -2px 0 rgba(0,0,0,.2);
       transition:background-color .12s ease,transform .12s ease;
     }
-    .btn-whatsapp:hover{
-      background:var(--btn-bg-hover);
+    .btn-cta:hover{
+      background:var(--accent-hover);
       transform:translateY(-1px);
     }
-    .btn-whatsapp:active{
+    .btn-cta:active{
       transform:translateY(0);
     }
 
@@ -288,7 +310,7 @@
 
     <nav class="btns" aria-label="Ações principais">
       <a class="btn" href="#marketplace">MARKETPLACE</a>
-      <a class="btn" href="#servicos">SERVICOS E COMERCIOS</a>
+      <a class="btn" href="#servicos">SERVIÇOS E COMÉRCIOS</a>
       <a class="btn" href="#eventos">EVENTOS</a>
     </nav>
 
@@ -349,7 +371,10 @@
         if(!r.ok) throw new Error('HTTP '+r.status);
         const data = await r.json();
         BZ_PRODUCTS = sanitizeList(data);
-      }catch(e){ BZ_PRODUCTS = []; }
+      }catch(e){
+        console.error('Erro ao carregar products.json', e);
+        // não trava se não carregar
+      }
     }
 
     // ====== Modal Controller ======
@@ -365,9 +390,16 @@
 
     const BZModal = {
       async openById(id){
-        if(!BZ_PRODUCTS.length){ await loadProducts(); }
+        // garante que tentamos carregar só uma vez
+        if(!BZ_PRODUCTS.length){
+          await loadProducts();
+        }
         const product = BZ_PRODUCTS.find(p => String(p.id) === String(id));
-        if(product){ this.open(product); }
+        if(product){
+          this.open(product);
+        }else{
+          console.warn('Produto não encontrado com id', id);
+        }
       },
       open(product){
         pmTitle.textContent = product.title || '';
@@ -399,9 +431,10 @@
         } else {
           btn.href = '#';
           btn.textContent = 'WhatsApp não disponível';
-          btn.style.opacity = '.6'; btn.style.pointerEvents = 'none';
+          btn.style.opacity = '.6';
+          btn.style.pointerEvents = 'none';
         }
-        btn.className = 'btn-whatsapp';
+        btn.className = 'btn-cta';
         pmCta.appendChild(btn);
 
         productModal.style.display = 'flex';
