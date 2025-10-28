@@ -188,11 +188,11 @@
     max-height:90vh;
     overflow-y:auto;
 
-    /* esconder barra de rolagem visualmente */
-    scrollbar-width:none;           /* Firefox */
+    /* esconder scroll mas manter scrollável */
+    scrollbar-width:none;
   }
   #editModal .modal-content::-webkit-scrollbar{
-    display:none;                   /* Chrome/Safari */
+    display:none;
   }
 
   #editModal h2{
@@ -207,63 +207,47 @@
     gap:12px;
   }
 
-  /* galeria de edição */
+  /* galeria no editar */
   #editGalleryPreview{
     display:flex;
     flex-wrap:wrap;
-    gap:12px;
+    gap:8px;
   }
-
-  .edit-img-card{
+  .edit-thumb{
     position:relative;
-    border:1px solid var(--border);
-    background:#fff;
-    border-radius:10px;
-    padding:8px;
-    width:110px;
-    font-size:11px;
-    line-height:1.3;
-    color:var(--ink);
-    box-shadow:0 6px 14px rgba(0,0,0,.08);
+    width:60px;
+    height:60px;
+    flex:0 0 auto;
   }
-  .edit-img-thumb{
-    width:94px;
-    height:70px;
+  .edit-thumb img{
+    width:60px;
+    height:60px;
     object-fit:cover;
     border-radius:8px;
     border:1px solid var(--border);
     display:block;
-    margin:0 auto 6px;
+  }
+  .edit-thumb .edit-cover-radio{
+    position:absolute;
+    top:4px;
+    left:4px;
+    transform:scale(1.2);
     background:#fff;
+    border-radius:4px;
   }
-  .edit-img-row{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .edit-radio,
-  .edit-checkbox{
-    display:flex;
-    align-items:center;
-    gap:4px;
+  .edit-thumb .remove-img-btn{
+    position:absolute;
+    top:4px;
+    right:4px;
+    background:var(--danger);
+    border:none;
+    color:#fff;
     font-size:11px;
-    color:var(--ink);
-    font-weight:500;
-  }
-
-  #newImgsPreview{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-    margin-top:8px;
-  }
-  #newImgsPreview img{
-    width:70px;
-    height:70px;
-    object-fit:cover;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background:#fff;
+    line-height:1;
+    padding:4px 6px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:800;
   }
 
   @media(max-width:768px){
@@ -432,21 +416,14 @@
         </div>
 
         <div class="gh-row">
-          <label>Imagens existentes</label>
+          <label>Galeria</label>
           <div id="editGalleryPreview"></div>
-          <small style="font-size:12px;color:var(--muted);line-height:1.4;">
-            Se marcar "Excluir", a imagem sai do produto (não será listada mais).<br/>
-            Marque "Capa" para escolher a foto principal.
-          </small>
-        </div>
 
-        <div class="gh-row">
-          <label class="upload-btn" for="editNewFotos">📷 Adicionar novas imagens</label>
-          <input accept="image/*" id="editNewFotos" multiple type="file" style="display:none"/>
-          <div id="newImgsPreview"></div>
-          <small style="font-size:12px;color:var(--muted);line-height:1.4;">
-            As novas imagens serão enviadas e adicionadas ao produto quando você salvar.
-          </small>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center;">
+            <label class="upload-btn" for="editNewFotos" style="margin:0;">📷 Adicionar Imagens</label>
+            <input id="editNewFotos" type="file" multiple accept="image/*" style="display:none;">
+            <small style="font-size:12px;color:var(--muted);line-height:1.4;">Selecione a capa (bolinha branca) e remova imagens indesejadas (X).</small>
+          </div>
         </div>
 
         <div class="gh-actions" style="justify-content:space-between;">
@@ -720,7 +697,6 @@
     });
 
     if(putRes.ok){
-      // mensagem final após confirmação
       toast('✅ Produto enviado pela Products Johnson!', true);
       const box = document.getElementById('alertBox');
       box.style.display='block';
@@ -728,7 +704,6 @@
       box.textContent='✅ Produto enviado pela Products Johnson!';
       setTimeout(()=> box.style.display='none', 2800);
 
-      // Recarrega do GitHub para garantir sincronizado (IMPORTANTE pra lista não sumir no refresh)
       await carregarProdutosGitHub();
     } else {
       alert('Erro ao salvar no GitHub.');
@@ -751,7 +726,6 @@
   document.getElementById('formProduto').addEventListener('submit', async (e)=>{
     e.preventDefault();
 
-    // mensagem inicial ao clicar em Publicar
     toast('Enviando produto...', false);
 
     const titulo = document.getElementById('titulo').value;
@@ -835,14 +809,12 @@
     salvarNoGitHub(produtos).then(renderProdutos);
   }
 
-  // ======== EDIT MODAL STATE ========
-  const editState = {
-    idx: null,
-    productId: null,
-    images: [],        // todas urls (sem duplicado)
-    coverUrl: '',      // url capa atual
-    newFiles: []       // File objects para upload
-  };
+  // ======== EDIT MODAL FUNCTIONS ========
+
+  // dados temporários da galeria durante edição
+  let editTempGallery = []; // [{url,isNew,file}]
+  let editTempCoverIndex = 0;
+  let editNewFiles = []; // arquivos novos ainda não enviados
 
   // popular selects Condado/Cidade no modal de edição
   function populateEditCounties(selectedCounty){
@@ -855,7 +827,7 @@
       '<option value="__custom__">Outro (digitar)</option>';
     if(selectedCounty){
       sel.value = selectedCounty;
-      if(!sel.value){ // caso county não exista na lista
+      if(!sel.value){
         sel.value = '__custom__';
       }
     }
@@ -888,69 +860,82 @@
     }
   }
 
-  // Renderiza cards de imagem existentes dentro do modal de edição
   function renderEditGallery(){
     const wrap = document.getElementById('editGalleryPreview');
     wrap.innerHTML = '';
-    editState.images.forEach((src,idx)=>{
-      const card = document.createElement('div');
-      card.className = 'edit-img-card';
-      card.innerHTML = `
-        <img class="edit-img-thumb" src="${src}" alt="Imagem do produto" />
-        <div class="edit-img-row">
-          <label class="edit-radio">
-            <input type="radio" name="editCover" value="${src}" ${src===editState.coverUrl?'checked':''}/> Capa
-          </label>
-          <label class="edit-checkbox">
-            <input type="checkbox" class="delCheck" data-url="${src}"/> Excluir
-          </label>
-        </div>
-      `;
-      wrap.appendChild(card);
-    });
-  }
+    editTempGallery.forEach((item, idx)=>{
+      const div = document.createElement('div');
+      div.className = 'edit-thumb';
+      div.setAttribute('data-idx', idx);
 
-  // preview para novas imagens ainda não enviadas
-  function renderNewImgsPreview(){
-    const previewWrap = document.getElementById('newImgsPreview');
-    previewWrap.innerHTML = '';
-    editState.newFiles.forEach(file=>{
-      const url = URL.createObjectURL(file);
       const img = document.createElement('img');
-      img.src = url;
-      img.alt = 'Nova imagem';
-      previewWrap.appendChild(img);
+      img.src = item.url;
+      img.alt = 'Imagem do produto';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.className = 'edit-cover-radio';
+      radio.name = 'editCapa';
+      radio.setAttribute('data-idx', idx);
+      if(idx === editTempCoverIndex){ radio.checked = true; }
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'remove-img-btn';
+      btn.setAttribute('data-idx', idx);
+      btn.textContent = '✕';
+
+      div.appendChild(img);
+      div.appendChild(radio);
+      div.appendChild(btn);
+      wrap.appendChild(div);
     });
   }
 
-  // Ao selecionar novas imagens no input do modal de edição
+  // delega clique do preview para remover ou trocar capa
+  document.addEventListener('click', function(e){
+    if(e.target.classList.contains('remove-img-btn')){
+      const idx = parseInt(e.target.getAttribute('data-idx'),10);
+      if(!isNaN(idx)){
+        editTempGallery.splice(idx,1);
+        if(editTempCoverIndex === idx){
+          editTempCoverIndex = 0;
+        }else if(editTempCoverIndex > idx){
+          editTempCoverIndex--;
+        }
+        renderEditGallery();
+      }
+    }
+    if(e.target.classList.contains('edit-cover-radio')){
+      const idx = parseInt(e.target.getAttribute('data-idx'),10);
+      if(!isNaN(idx)){
+        editTempCoverIndex = idx;
+        renderEditGallery();
+      }
+    }
+  });
+
+  // adicionar novas imagens no modo edição (pré-visualização local)
   document.getElementById('editNewFotos').addEventListener('change', (e)=>{
-    const files = Array.from(e.target.files || []);
-    // acumular (não substitui) pra poder enviar todas quando salvar
-    editState.newFiles.push(...files);
-    renderNewImgsPreview();
+    const files = Array.from(e.target.files||[]);
+    files.forEach(f=>{
+      const objUrl = URL.createObjectURL(f);
+      editTempGallery.push({url:objUrl,isNew:true,file:f});
+      editNewFiles.push(f);
+    });
+    // se não tem capa ainda define a primeira
+    if(editTempGallery.length && (editTempCoverIndex<0 || editTempCoverIndex>=editTempGallery.length)){
+      editTempCoverIndex = 0;
+    }
+    renderEditGallery();
+    // limpa input pra poder adicionar o mesmo arquivo dnv se quiser
+    e.target.value = '';
   });
 
   function openEditModal(i){
     const p = produtos[i];
     if(!p) return;
 
-    editState.idx = i;
-    editState.productId = p.id || Date.now().toString();
-
-    // montar lista de imagens únicas
-    const imgs = [];
-    if(p.image) imgs.push(p.image);
-    if(Array.isArray(p.gallery)) imgs.push(...p.gallery);
-    const uniq = [];
-    imgs.forEach(src=>{ if(src && !uniq.includes(src)) uniq.push(src); });
-    editState.images = uniq;
-    editState.coverUrl = p.image || uniq[0] || '';
-    editState.newFiles = []; // reset novas fotos
-    renderEditGallery();
-    renderNewImgsPreview();
-
-    // preencher campos texto/números
     document.getElementById('editIndex').value = i;
     document.getElementById('editTitulo').value = p.title || '';
     document.getElementById('editValor').value = Number(p.price||0);
@@ -966,18 +951,37 @@
     const editCityInput = document.getElementById('editCityCustom');
 
     if((COUNTY_CITIES[p.county||'']||[]).includes(p.city)){
-      // cidade está na lista
       editCitySel.disabled = false;
       editCitySel.value = p.city;
       editCityInput.style.display='none';
       editCityInput.value = '';
     }else{
-      // cidade custom
       editCitySel.disabled = false;
       editCitySel.value = '__custom__';
       editCityInput.style.display='block';
       editCityInput.value = p.city || '';
     }
+
+    // galeria temp (existente)
+    editTempGallery = [];
+    const imgs = [];
+    if(p.image) imgs.push(p.image);
+    if(Array.isArray(p.gallery)) imgs.push(...p.gallery);
+    const uniq = [];
+    imgs.forEach(src=>{ if(src && !uniq.includes(src)) uniq.push(src); });
+    uniq.forEach(u=>{
+      editTempGallery.push({url:u,isNew:false});
+    });
+
+    // capa inicial
+    let coverUrl = p.image || (uniq.length?uniq[0]:'');
+    editTempCoverIndex = Math.max(0, editTempGallery.findIndex(g=>g.url===coverUrl));
+    if(editTempCoverIndex === -1){ editTempCoverIndex = 0; }
+
+    // limpa arquivos novos
+    editNewFiles = [];
+
+    renderEditGallery();
 
     // abrir modal
     const m = document.getElementById('editModal');
@@ -1015,61 +1019,6 @@
       return;
     }
 
-    // ===== atualizar lista de imagens =====
-    // 1. quais imagens devem ser deletadas (tiradas do produto)?
-    const delChecks = Array.from(document.querySelectorAll('#editGalleryPreview .delCheck'));
-    const toDelete = delChecks.filter(c => c.checked).map(c => c.getAttribute('data-url'));
-
-    // 2. cover atual escolhida
-    const coverRadio = document.querySelector('input[name="editCover"]:checked');
-    const chosenCover = coverRadio ? coverRadio.value : editState.coverUrl;
-
-    // 3. mantém apenas as não deletadas
-    let finalImages = editState.images.filter(u => !toDelete.includes(u));
-
-    // 4. subir novas imagens, adicionar no final
-    const cfg = ghGet();
-    if(cfg.repo && cfg.branch && cfg.token && editState.newFiles.length){
-      const imgBase = 'images/'+editState.productId;
-      toast('Enviando novas imagens...', false);
-      for(let i=0;i<editState.newFiles.length;i++){
-        const f = editState.newFiles[i];
-        const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
-        const fname = slugifyName(f.name.replace(/\.[^.]+$/, '')) + '.' + ext;
-        const destPath = imgBase + '/' + fname;
-        const b64 = await readFileAsBase64(f);
-        toast('Enviando imagem '+(i+1)+' de '+editState.newFiles.length+'...', false);
-        const url = await uploadGitHubFile({
-          repo: cfg.repo,
-          branch: cfg.branch,
-          path: destPath,
-          token: cfg.token,
-          base64: b64,
-          message: 'Upload image for product '+editState.productId
-        });
-        if(url && !finalImages.includes(url)){
-          finalImages.push(url);
-        }
-      }
-      toast('Novas imagens enviadas ✅', true);
-    }
-
-    // Se a capa que usuário escolheu estava marcada pra excluir, força ela de volta
-    // (prioridade: capa não pode sumir)
-    if(toDelete.includes(chosenCover)){
-      // se tentou apagar capa, vamos só não deletar ela
-      finalImages = Array.from(new Set([chosenCover, ...finalImages]));
-    }
-
-    // recalcula capa final
-    const finalCover = chosenCover || finalImages[0] || '';
-
-    // produto[idx] recebe capa e galeria
-    produtos[idx].image = finalCover;
-    // galeria sem duplicar capa
-    produtos[idx].gallery = finalImages.filter(u => u !== finalCover);
-
-    // ===== atualizar campos de texto/número =====
     produtos[idx].title = document.getElementById('editTitulo').value || '';
     produtos[idx].price = Number(document.getElementById('editValor').value || 0);
     produtos[idx].description = document.getElementById('editDescricao').value || '';
@@ -1078,6 +1027,53 @@
     produtos[idx].whatsapp = editedWhatsapp;
     produtos[idx].county = editedCounty;
     produtos[idx].city = editedCitySel;
+
+    // ====== Upload novos arquivos (se houver) ======
+    const cfg = ghGet();
+    const productId = produtos[idx].id || Date.now().toString();
+    let uploadedUrls = [];
+    if(cfg.repo && cfg.branch && cfg.token && editNewFiles.length){
+      const imgBase = 'images/'+productId;
+      toast('Enviando novas imagens...', false);
+      for(let i=0;i<editNewFiles.length;i++){
+        const f = editNewFiles[i];
+        const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
+        const fname = slugifyName(f.name.replace(/\.[^.]+$/, '')) + '.' + ext;
+        const destPath = imgBase + '/' + fname;
+        const b64 = await readFileAsBase64(f);
+        toast('Enviando imagem '+(i+1)+' de '+editNewFiles.length+'...', false);
+        const url = await uploadGitHubFile({
+          repo: cfg.repo,
+          branch: cfg.branch,
+          path: destPath,
+          token: cfg.token,
+          base64: b64,
+          message: 'Upload image (edit) for product '+productId
+        });
+        uploadedUrls.push(url);
+      }
+      toast('Novas imagens enviadas ✅', true);
+    }
+
+    // Monta galeria final preservando ordem atual da edição
+    const finalGallery = [];
+    let uploadPtr = 0;
+    editTempGallery.forEach(g=>{
+      if(g.isNew){
+        // pega URL real enviada
+        const realUrl = uploadedUrls[uploadPtr] || '';
+        uploadPtr++;
+        if(realUrl) finalGallery.push(realUrl);
+      } else {
+        if(g.url) finalGallery.push(g.url);
+      }
+    });
+
+    // capa final
+    const finalCoverUrl = finalGallery[editTempCoverIndex] || finalGallery[0] || '';
+
+    produtos[idx].image = finalCoverUrl;
+    produtos[idx].gallery = finalGallery;
 
     await salvarNoGitHub(produtos);
     renderProdutos();
@@ -1088,7 +1084,6 @@
   async function carregarProdutosGitHub(){
     const cfg = ghGet();
     if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){
-      // sem config ainda -> só renderiza lista em branco
       renderProdutos();
       return;
     }
@@ -1111,7 +1106,7 @@
   }
 
   // ==== County & City selector (form de criação) ====
-  const COUNTY_CITIES = {"Carlow": ["Carlow Town", "Tullow", "Bagenalstown", "Clonegal", "Rathvilly", "Borris", "Hacketstown", "Ballon", "Fenagh", "Nurney"], "Cavan": ["Cavan Town", "Bailieborough", "Virginia", "Kingscourt", "Cootehill", "Belturbet", "Ballyjamesduff", "Arvagh", "Killeshandra", "Mullagh"], "Clare": ["Ennis", "Shannon", "Kilrush", "Ennistymon", "Kilkee", "Lahinch", "Lisdoonvarna", "Miltown Malbay", "Sixmilebridge", "Tulla", "Newmarket-on-Fergus", "Scarriff", "Killaloe", "Bodyke", "Quin"], ...
+  const COUNTY_CITIES = {"Carlow": ["Carlow Town", "Tullow", "Bagenalstown", "Clonegal", "Rathvilly", "Borris", "Hacketstown", "Ballon", "Fenagh", "Nurney"], "Cavan": ["Cavan Town", "Bailieborough", "Virginia", "Kingscourt", "Cootehill", "Belturbet", "Ballyjamesduff", "Arvagh", "Killeshandra", "Mullagh"], "Clare": ["Ennis", "Shannon", "Kilrush", "Ennistymon", "Kilkee", "Lahinch", "Lisdoonvarna", "Miltown Malbay", "Sixmilebridge", "Tulla", "Newmarket-on-Fergus", "Scarriff", "Killaloe", "Bodyke", "Quin"], "Cork": ["Cork City", "Ballincollig", "Carrigaline", "Cobh", "Mallow", "Midleton", "Youghal", "Clonakilty", "Bandon", "Skibbereen", "Kinsale", "Macroom", "Bantry", "Fermoy", "Charleville", "Passage West", "Kanturk", "Mitchelstown", "Glanmire", "Douglas", "Carrigtwohill", "Coachford", "Buttevant", "Millstreet", "Drimoleague"], "Donegal": ["Letterkenny", "Buncrana", "Ballybofey", "Bundoran", "Donegal Town", "Killybegs", "Derrybeg", "Gweedore", "Glenties", "Carndonagh", "Moville", "Ramelton", "Rathmullan", "Milford", "Falcarragh", "Dungloe", "Ballyshannon", "Lifford"], "Dublin": ["Dublin 1", "Dublin 2", "Dublin 3", "Dublin 4", "Dublin 5", "Dublin 6", "Dublin 6W", "Dublin 7", "Dublin 8", "Dublin 9", "Dublin 10", "Dublin 11", "Dublin 12", "Dublin 13", "Dublin 14", "Dublin 15", "Dublin 16", "Dublin 17", "Dublin 18", "Dublin 20", "Dublin 22", "Dublin 24", "Dún Laoghaire", "Blackrock", "Stillorgan", "Dundrum", "Sandyford", "Ranelagh", "Rathmines", "Rathgar", "Terenure", "Templeogue", "Clonskeagh", "Donnybrook", "Ballsbridge", "Irishtown", "Sandycove", "Monkstown", "Dalkey", "Killiney", "Shankill", "Lucan", "Palmerstown", "Chapelizod", "Clondalkin", "Tallaght", "Rathfarnham", "Knocklyon", "Blanchardstown", "Castleknock", "Clonsilla", "Swords", "Malahide", "Portmarnock", "Howth", "Baldoyle", "Donabate", "Skerries", "Rush", "Lusk", "Balbriggan", "Raheny", "Artane", "Beaumont", "Santry", "Drumcondra", "Phibsborough", "Cabra", "Finglas", "Ballymun", "Coolock", "Clontarf"], "Galway": ["Galway City", "Athenry", "Tuam", "Ballinasloe", "Loughrea", "Oranmore", "Gort", "Portumna", "Moycullen", "Claregalway", "Kinvara", "Headford", "Oughterard", "Barna", "Spiddal", "Carraroe (An Cheathrú Rua)", "Inverin", "Leenane", "Mountbellew", "Dunmore", "Glenamaddy", "Ballinderreen", "Craughwell", "Abbeyknockmoy", "Ahascragh", "Ardrahan", "Ballygar", "Peterswell", "Clifden", "Recess", "Roundstone"], "Kerry": ["Tralee", "Killarney", "Listowel", "Dingle", "Kenmare", "Cahersiveen", "Killorglin", "Castleisland", "Sneem", "Waterville", "Annascaul", "Ballybunion"], "Kildare": ["Naas", "Newbridge", "Maynooth", "Celbridge", "Leixlip", "Athy", "Kildare Town", "Kilcullen", "Monasterevin", "Clane", "Sallins", "Rathangan", "Prosperous"], "Kilkenny": ["Kilkenny City", "Callan", "Thomastown", "Graiguenamanagh", "Castlecomer", "Bennettsbridge", "Gowran", "Urlingford", "Mooncoin", "Piltown", "Freshford"], "Laois": ["Portlaoise", "Portarlington", "Mountmellick", "Abbeyleix", "Stradbally", "Durrow", "Mountrath", "Rathdowney", "Emo", "Ballylinan"], "Leitrim": ["Carrick-on-Shannon", "Manorhamilton", "Ballinamore", "Mohill", "Drumshanbo", "Dromahair"], "Limerick": ["Limerick City", "Newcastle West", "Abbeyfeale", "Kilmallock", "Rathkeale", "Askeaton", "Adare", "Croom", "Bruff"], "Longford": ["Longford Town", "Granard", "Lanesborough", "Edgeworthstown", "Ballymahon", "Newtownforbes"], "Louth": ["Dundalk", "Drogheda", "Ardee", "Blackrock", "Carlingford", "Castlebellingham", "Termonfeckin"], "Mayo": ["Castlebar", "Ballina", "Westport", "Claremorris", "Ballinrobe", "Swinford", "Belmullet", "Foxford", "Ballyhaunis", "Louisburgh", "Newport", "Charlestown"], "Meath": ["Navan", "Ashbourne", "Trim", "Kells", "Laytown–Bettystown", "Ratoath", "Dunboyne", "Duleek", "Kildalkey", "Athboy", "Enfield", "Oldcastle"], "Monaghan": ["Monaghan Town", "Carrickmacross", "Castleblayney", "Clones", "Ballybay", "Emyvale"], "Offaly": ["Tullamore", "Birr", "Edenderry", "Clara", "Banagher", "Ferbane", "Daingean", "Kilcormac", "Shannonbridge"], "Roscommon": ["Roscommon Town", "Boyle", "Castlerea", "Ballaghaderreen", "Strokestown", "Lanesborough", "Elphin"], "Sligo": ["Sligo Town", "Tubbercurry", "Enniscrone", "Collooney", "Ballymote", "Grange", "Strandhill"], "Tipperary": ["Clonmel", "Nenagh", "Thurles", "Tipperary Town", "Carrick-on-Suir", "Templemore", "Cashel", "Roscrea", "Cahir", "Borrisokane"], "Waterford": ["Waterford City", "Tramore", "Dungarvan", "Lismore", "Cappoquin", "Kilmacthomas"], "Westmeath": ["Athlone", "Mullingar", "Moate", "Kinnegad", "Castlepollard", "Kilbeggan", "Rochfortbridge"], "Wexford": ["Wexford Town", "Gorey", "Enniscorthy", "New Ross", "Rosslare", "Courtown", "Bunclody", "Taghmon"], "Wicklow": ["Bray", "Greystones", "Arklow", "Wicklow Town", "Blessington", "Baltinglass", "Newtownmountkennedy", "Rathnew", "Kilcoole", "Roundwood"]};
 
   function populateCounties(){
     const sel = document.getElementById('county');
@@ -1168,7 +1163,7 @@
     var citySel = document.getElementById('city');
     if(citySel){ citySel.addEventListener('change', toggleCityCustom); }
 
-    // carregar lista inicial direto do GitHub (assim não some ao atualizar a página)
+    // carregar lista inicial direto do GitHub
     await carregarProdutosGitHub();
   });
 
