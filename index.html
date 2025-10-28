@@ -28,13 +28,13 @@
       font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background: var(--bg);
       color:var(--ink);
-      /* fluxo normal pra não quebrar modal */
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
     }
 
     .wrap{
       width:min(1000px,96vw);
-      max-width:1000px;
-      margin:0 auto; /* centraliza horizontal */
       padding:10px 14px 26px;
       text-align:center;
     }
@@ -125,6 +125,13 @@
       width:100%;
       max-width:1000px;
       margin:0 auto 60px;
+      text-align:left;
+    }
+    #productsSection h2{
+      font-size:18px;
+      font-weight:900;
+      margin:0 0 14px;
+      color:var(--ink);
       text-align:left;
     }
     .products-grid{
@@ -323,6 +330,18 @@
       pointer-events:none;
       cursor:not-allowed;
     }
+
+    /* Rodapé leve (opcional) */
+    footer{
+      font-size:11px;
+      color:var(--subtle);
+      text-align:center;
+      padding:30px 0 60px;
+    }
+    footer span{
+      font-weight:700;
+      color:var(--ink);
+    }
   </style>
 </head>
 <body>
@@ -344,6 +363,7 @@
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
+      <h2>Produtos recentes</h2>
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
   </main>
@@ -369,15 +389,20 @@
     </div>
   </div>
 
+  <footer>
+    Produtos publicados e enviados pela <span>Products Johnson</span>.
+  </footer>
+
   <script>
     // ====== Caminho do JSON público atualizado pelo painel ======
-    const PUBLIC_JSON = './products.json';
+    const PUBLIC_JSON = './products.json'; // mesmo arquivo gerenciado pelo painel Brazucas / Products Johnson
     let BZ_PRODUCTS = [];
 
     // ====== Helpers ======
     function fmtEUR(n){
       const v = Number(n);
       if(Number.isNaN(v)) return '€ ' + (n ?? '');
+      // se tiver decimais, mostrar com 2 casas
       if(Number.isInteger(v)){
         return '€ ' + v;
       }
@@ -410,7 +435,7 @@
         if(!r.ok) throw new Error('HTTP '+r.status);
         const data = await r.json();
         BZ_PRODUCTS = sanitizeList(data)
-          .filter(p => p.status !== 'apagado');
+          .filter(p => p.status !== 'apagado'); // opcional
         // Ordena mais novos primeiro
         BZ_PRODUCTS.sort(function(a,b){
           return (b.createdAt||0) - (a.createdAt||0);
@@ -427,6 +452,7 @@
       if(!listEl) return;
       listEl.innerHTML = '';
 
+      // filtro de busca simples (título + descrição + cidade + condado)
       const term = (filterTerm||'').trim().toLowerCase();
       const arr = term
         ? BZ_PRODUCTS.filter(p=>{
@@ -484,6 +510,7 @@
 
     const BZModal = {
       async openById(id){
+        // garante que temos dados
         if(!BZ_PRODUCTS.length){
           await loadProducts();
         }
@@ -503,9 +530,10 @@
         pmImage.src = cover;
         pmImage.alt = product.title || 'Imagem do produto';
 
-        // miniaturas
+        // miniaturas (sem duplicar se só tiver uma imagem)
         pmGallery.innerHTML = '';
         const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+        // Junta capa + galeria e remove duplicados
         const merged = [cover, ...gallery.filter(Boolean)];
         const uniqueImages = [];
         merged.forEach(src => {
@@ -526,7 +554,7 @@
         pmCta.innerHTML = '';
         const btn = document.createElement('a');
         const phone = (product.whatsapp||'').replace(/\D+/g,'');
-        const msg = \`Vim através do Brazucas Marketplace para ver (\${product.title||''})\`;
+        const msg = `Vim através do Brazucas Marketplace para ver (${product.title||''})`;
         if(phone){
           btn.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
           btn.target = '_blank';
@@ -572,7 +600,7 @@
       });
     }
 
-    // ====== Inicialização ======
+    // ====== Inicialização (carrega Products Johnson e plota na página) ======
     async function init(){
       await loadProducts();
       renderList();
