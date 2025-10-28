@@ -42,7 +42,7 @@
   .preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
   .preview input[type="radio"]{position:absolute;top:4px;left:4px;transform:scale(1.2)}
   .alert{margin-top:10px;padding:10px;border-radius:6px;text-align:center;display:none}
-  .alert.success{background:var(--success);color:#fff; font-weight:900}
+  .alert.success{background:var(--success);color:#fff}
   /* Modal */
   .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); justify-content:center; align-items:center; z-index:9999}
   .modal.show{display:flex !important}
@@ -51,37 +51,7 @@
   .gh-grid{display:grid; grid-template-columns:1fr; gap:8px}
   .gh-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:6px}
 </style>
-<style>
-/* Edit Modal tweaks (inherit painel design) */
-#editModal .modal-content{max-width:520px;width:92vw}
-#editForm{display:flex;flex-direction:column;gap:10px}
-#editForm .grid-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.preview-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.preview{position:relative;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border, #333);padding:6px;border-radius:8px}
-.preview img{width:72px;height:72px;object-fit:cover;border-radius:6px}
-#editModal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
-#editModal .button{display:inline-block;cursor:pointer}
-</style><style>
-/* === Modal UX fixes === */
-.modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); justify-content:center; align-items:center; z-index:9999; overflow:auto;}
-.modal.show{display:flex !important}
-.modal-content{background:var(--cream); color:var(--ink); padding:20px; border-radius:12px; width:min(96vw,640px); border:1px solid var(--border); position:relative; box-shadow:0 14px 30px var(--shadow); max-height:90vh; overflow:auto;}
-.modal-close{position:absolute; top:10px; right:10px; background:#ff3c00; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:800}
-#editForm{display:flex; flex-direction:column; gap:10px}
-#editForm .grid-two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-@media (max-width:640px){
-  #editForm .grid-two{grid-template-columns:1fr}
-}
-/* previews */
-.preview-container{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
-.preview{position:relative; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); padding:6px; border-radius:8px}
-.preview img{width:72px; height:72px; object-fit:cover; border-radius:6px}
-.actions{display:flex; justify-content:flex-end; gap:10px; margin-top:8px}
-</style><style>
-/* Hide scrollbar inside modal while keeping scroll behavior */
-.modal-content{ -ms-overflow-style: none; scrollbar-width: none; }
-.modal-content::-webkit-scrollbar{ display: none; width: 0; height: 0; }
-</style></head>
+</head>
 <body>
   <h1><img src="logo.png" alt="Brazucas" class="logo-small"></h1>
   <button class="config-btn" id="openGithubModal" onclick="openGh()">Configurações</button>
@@ -125,7 +95,7 @@
         <div class="preview-container" id="preview"></div>
 
         <button type="submit" class="action">Adicionar Produto</button>
-        <div class="alert success" id="alertBox">(PUBLICADO)</div>
+        <div class="alert success" id="alertBox">✅ Produto salvo com sucesso no GitHub!</div>
       </form>
     </div>
 
@@ -189,10 +159,7 @@
         <button id="downloadProductsJson" class="action">Baixar products.json</button>
       </div>
       <div id="ghAlert" class="alert" style="display:none"></div>
-    
-  <!-- Modal: Editar Produto (usa o mesmo estilo do painel) -->
-  <!-- editModal moved out of githubModal -->
-</div>
+    </div>
   </div>
 
 <script>
@@ -245,7 +212,6 @@
   // ===== GitHub Config =====
   function ghGet(){ try{ return JSON.parse(localStorage.getItem('ghConfig')||'{}'); }catch(e){ return {}; } }
   function ghSet(cfg){ localStorage.setItem('ghConfig', JSON.stringify(cfg)); }
-  window.ghGet = ghGet; window.ghSet = ghSet;
   function readModalCfg(){
     return {
       repo: (document.getElementById('ghRepo')?.value||'').trim(),
@@ -437,7 +403,7 @@
     const putRes = await fetch(url, { method:'PUT', headers:{Authorization:`token ${cfg.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'}, body: JSON.stringify(body)});
     if(putRes.ok){ toast('Produto publicado no GitHub ✅', true);
       const box = document.getElementById('alertBox');
-      box.style.display='block'; box.classList.add('success'); box.textContent='(PUBLICADO)';
+      box.style.display='block'; box.classList.add('success'); box.textContent='✅ Produto salvo no GitHub!';
       setTimeout(()=> box.style.display='none', 2800);
       await carregarProdutosGitHub();
     } else {
@@ -464,11 +430,13 @@
     const valor = Number(document.getElementById('valor').value || 0);
     const descricao = document.getElementById('descricao').value;
     const departamento = document.getElementById('departamento').value;
+    const regiao = document.getElementById('regiao').value;
     const estoque = parseInt(document.getElementById('estoque').value || '0', 10);
     let whatsapp = normalizeIEPhone(document.getElementById('whatsapp').value || '');
     if(!whatsapp || whatsapp.length < 11){ alert('Número inválido. Use +353871234567 ou 0871234567'); return; }
     const county = document.getElementById('county').value;
     let city = document.getElementById('city').value; if(city==='__custom__'){ city = (document.getElementById('cityCustom').value||'').trim(); }
+    const region = document.getElementById('regiao').value;
 
     // Upload de imagens para GitHub (pasta por produto) e usar apenas URLs no JSON
     const cfg = ghGet();
@@ -500,223 +468,18 @@
     const produto = { id: productId, title: titulo, price: valor, description: descricao, department: departamento, county, city, stock: estoque, whatsapp, image: imageUrl, gallery: galleryUrls, createdAt: Date.now(), status:'publicado' };
     produtos.push(produto);
     await salvarNoGitHub(produtos);
-      if(window.carregarProdutosGitHub){ try{ await window.carregarProdutosGitHub(); }catch(_){} }
-      if(window.renderProdutos){ window.renderProdutos(); }
     e.target.reset();
     document.getElementById('preview').innerHTML='';
     renderProdutos();
   });
 
   function excluirProduto(i){ produtos.splice(i,1); salvarNoGitHub(produtos).then(renderProdutos); }
-  
-// === EDITAR PRODUTO (modal) ===
-let __editIndex = -1;
-function openEditModal(){
-  const m = document.getElementById('editModal');
-  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-}
-function closeEditModal(){
-  const m = document.getElementById('editModal');
-  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
-}
-document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeEditModal(); });
-
-
-function hydrateEditCountyCity(p){
-  const selCounty = document.getElementById('editCounty');
-  const selCity = document.getElementById('editCity');
-  const custom = document.getElementById('editCityCustom');
-
-  // Populate counties
-  if(selCounty && window.COUNTY_CITIES){
-    const counties = Object.keys(COUNTY_CITIES).sort();
-    selCounty.innerHTML = '<option value="">Selecione o condado…</option>'
-      + counties.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
-    selCounty.value = p.county || '';
+  function editarProduto(i){
+    const novo = prompt('Novo título:', produtos[i]?.title||'');
+    if(novo){ produtos[i].title = novo; salvarNoGitHub(produtos).then(renderProdutos); }
   }
 
-  // Helper to build cities list for current county (with custom option)
-  function buildCities(county, presetCity){
-    const list = (window.COUNTY_CITIES && COUNTY_CITIES[county]) || [];
-    selCity.disabled = !list.length;
-    const options = list.map(n=>'<option value="'+n+'">'+n+'</option>').join('');
-    // add "custom" option
-    const customOpt = '<option value="__custom__">Outra (digitar)</option>';
-    selCity.innerHTML = '<option value="">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
-      + options + customOpt;
-
-    // Preselect
-    if(list.includes(presetCity)){
-      selCity.value = presetCity;
-      custom.style.display='none';
-      custom.value='';
-    }else if(presetCity){
-      selCity.value = '__custom__';
-      custom.style.display='block';
-      custom.value = presetCity;
-    }else{
-      selCity.value = '';
-      custom.style.display='none';
-      custom.value='';
-    }
-  }
-
-  // Initial build based on product data
-  if(selCity){
-    buildCities(p.county || '', p.city || '');
-  }
-
-  // Listeners
-  if(selCounty){
-    selCounty.onchange = function(){
-      buildCities(this.value || '', '');
-    };
-  }
-  if(selCity){
-    selCity.onchange = function(){
-      if(this.value === '__custom__'){
-        custom.style.display='block';
-        custom.focus();
-      }else{
-        custom.style.display='none';
-      }
-    };
-  }
-}
-
-  if(selCity){
-    const list = (window.COUNTY_CITIES && COUNTY_CITIES[p.county]) || [];
-    selCity.disabled = !list.length;
-    selCity.innerHTML = '<option value=\"\">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
-      + list.map(n=>'<option value=\"'+n+'\">'+n+'</option>').join('');
-    if(list.includes(p.city)){ selCity.value = p.city; custom.style.display='none'; }
-    else if(p.city){ custom.style.display='block'; custom.value = p.city; }
-  }
-  selCounty?.addEventListener('change', function(){
-    const list = (window.COUNTY_CITIES && COUNTY_CITIES[this.value]) || [];
-    selCity.disabled = !list.length;
-    selCity.innerHTML = '<option value=\"\">' + (list.length? 'Selecione a cidade…':'Selecione o condado…') + '</option>'
-      + list.map(n=>'<option value=\"'+n+'\">'+n+'</option>').join('');
-    document.getElementById('editCityCustom').style.display='none';
-    document.getElementById('editCityCustom').value='';
-  });
-}
-
-function editarProduto(i){
-  __editIndex = i;
-  const p = produtos && produtos[i];
-  if(!p) return;
-
-  document.getElementById('editTitulo').value = p.title || '';
-  document.getElementById('editValor').value = Number(p.price||0);
-  document.getElementById('editDescricao').value = p.description || '';
-  document.getElementById('editDepartamento').value = p.department || '';
-  document.getElementById('editEstoque').value = (typeof p.stock==='number')? p.stock : parseInt(p.stock||'0',10);
-  document.getElementById('editWhatsapp').value = p.whatsapp || '';
-
-  hydrateEditCountyCity(p);
-
-  const cur = document.getElementById('editCurrentGallery');
-  if(cur){
-    cur.innerHTML = '';
-    const arr = Array.isArray(p.gallery) ? p.gallery : (p.image ? [p.image] : []);
-    if(arr.length){
-      arr.forEach((url,idx)=>cur.insertAdjacentHTML('beforeend', '<div class=\"preview\"><img src=\"'+url+'\" alt=\"img'+idx+'\"/></div>'));
-    }else{
-      cur.innerHTML = '<small>Sem imagens</small>';
-    }
-  }
-
-  const chk = document.getElementById('editChangeImages');
-  const blk = document.getElementById('editImagesBlock');
-  const prev = document.getElementById('editPreview');
-  const input = document.getElementById('editFotos');
-  if(chk && blk && input && prev){
-    chk.checked = false; blk.style.display='none'; prev.innerHTML=''; input.value='';
-    chk.onchange = ()=>{ blk.style.display = chk.checked ? 'block' : 'none'; };
-    input.onchange = (e)=>{
-      const files = Array.from(e.target.files||[]);
-      prev.innerHTML='';
-      files.forEach((f,ix)=>{
-        const url = URL.createObjectURL(f);
-        prev.insertAdjacentHTML('beforeend', '<div class=\"preview\">'
-          + '<input type=\"radio\" name=\"editCapa\" '+(ix===0?'checked':'')+' value=\"'+ix+'\">'
-          + '<img src=\"'+url+'\"></div>');
-      });
-    };
-  }
-
-  openEditModal();
-}
-
-async function submitEditForm(e){
-  e.preventDefault();
-  if(__editIndex<0) return false;
-  const p = produtos && produtos[__editIndex];
-  if(!p) return false;
-
-  const titulo = document.getElementById('editTitulo').value;
-  const valor  = Number(document.getElementById('editValor').value||0);
-  const descricao = document.getElementById('editDescricao').value;
-  const departamento = document.getElementById('editDepartamento').value;
-  const estoque = parseInt(document.getElementById('editEstoque').value||'0',10);
-  let whatsapp = (typeof normalizeIEPhone==='function') ? normalizeIEPhone(document.getElementById('editWhatsapp').value||'') : (document.getElementById('editWhatsapp').value||'').trim();
-  if(!whatsapp || whatsapp.replace(/\D/g,'').length < 7){ alert('Número inválido'); return false; }
-
-  const county = document.getElementById('editCounty').value;
-  let city = document.getElementById('editCity').value;
-  if(!city || city==='__custom__'){ city = (document.getElementById('editCityCustom').value||'').trim(); }
-
-  // images
-  const changeImages = document.getElementById('editChangeImages').checked;
-  let imageUrl = p.image || '';
-  let galleryUrls = Array.isArray(p.gallery) ? p.gallery.slice() : (p.image ? [p.image]: []);
-
-  if(changeImages){
-    const files = Array.from(document.getElementById('editFotos').files || []);
-    const checked = document.querySelector('input[name=\"editCapa\"]:checked');
-    let coverIndex = 0; if(checked) coverIndex = parseInt(checked.value||'0',10)||0;
-    galleryUrls = [];
-    if(files.length && typeof uploadGitHubFile==='function' && typeof ghGet==='function'){
-      const cfg = ghGet();
-      const productId = p.id || Date.now().toString();
-      const base = `images/${productId}`;
-      for(let i=0;i<files.length;i++){
-        const f = files[i];
-        const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
-        const nameNoExt = f.name.replace(/\.[^.]+$/, '');
-        const fname = (typeof slugifyName==='function'? slugifyName(nameNoExt) : nameNoExt).toLowerCase() + '.' + ext;
-        const path = `${base}/${fname}`;
-        const b64 = await readFileAsBase64(f);
-        const url = await uploadGitHubFile({ repo: cfg.repo, branch: cfg.branch, path, token: cfg.token, base64: b64, message: `Upload image for product ${productId}`});
-        galleryUrls.push(url);
-      }
-    }
-    imageUrl = galleryUrls.length ? galleryUrls[Math.min(coverIndex, galleryUrls.length-1)] : (galleryUrls[0]||imageUrl);
-  }
-
-  // apply
-  produtos[__editIndex] = {
-    ...p,
-    title: titulo,
-    price: valor,
-    description: descricao,
-    department: departamento,
-    county, city,
-    stock: estoque,
-    whatsapp,
-    image: imageUrl,
-    gallery: galleryUrls
-  };
-
-  if(typeof salvarNoGitHub==='function'){ await salvarNoGitHub(produtos); }
-  if(typeof renderProdutos==='function'){ renderProdutos(); }
-  closeEditModal();
-  return false;
-}
-// === /EDITAR PRODUTO ===
-
-async function carregarProdutosGitHub(){
+  async function carregarProdutosGitHub(){
     const cfg = ghGet();
     if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
     try{
@@ -765,211 +528,11 @@ async function carregarProdutosGitHub(){
     if(citySel){ citySel.addEventListener('change', toggleCityCustom); }
   });
 
-  // primeira render (hidrata do GitHub)
-  carregarProdutosGitHub().then(()=>renderProdutos());
+  // primeira render
+  renderProdutos();
 
 })();</script>
 
 <div id="toast" style="position:fixed; right:16px; bottom:16px; z-index:10000; display:none; background:#1a1a1a; color:#fff; padding:10px 14px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.1)"></div>
-
-<script>
-(function(){
-  if (window.__BZ_READ_PRODUCTS_PATCH__) return;
-  window.__BZ_READ_PRODUCTS_PATCH__ = true;
-
-  function isArr(a){ return Array.isArray(a); }
-  function sanitize(list){
-    if(!isArr(list)) return [];
-    return list.map(p => ({
-      id: p.id || (Date.now().toString() + Math.random().toString(16).slice(2)),
-      title: p.title || '',
-      price: Number(p.price || 0),
-      description: p.description || '',
-      department: p.department || 'marketplace',
-      county: p.county || '',
-      city: p.city || '',
-      stock: (typeof p.stock==='number')? p.stock : parseInt(p.stock||'0',10),
-      whatsapp: p.whatsapp || '',
-      image: p.image || '',
-      gallery: Array.isArray(p.gallery)? p.gallery : [],
-      createdAt: p.createdAt || Date.now(),
-      status: p.status || 'publicado'
-    }));
-  }
-
-  async function fetchRaw(ownerRepo, branch, path){
-    const url = `https://raw.githubusercontent.com/${ownerRepo}/${branch}/${path}`;
-    const r = await fetch(url + `?t=${Date.now()}`, {cache:'no-store'});
-    if(!r.ok) throw new Error('RAW ' + r.status);
-    return r.json();
-  }
-  async function fetchContentsAPI(ownerRepo, branch, path, token){
-    const url = `https://api.github.com/repos/${ownerRepo}/contents/${path}?ref=${encodeURIComponent(branch)}`;
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const r = await fetch(url, { headers, cache:'no-store' });
-    if(!r.ok) throw new Error('API ' + r.status);
-    const json = await r.json();
-    if(json && json.content){
-      const b64 = json.content.replace(/\n/g,'');
-      const txt = atob(b64);
-      return JSON.parse(txt);
-    }
-    throw new Error('Invalid contents API response');
-  }
-
-  window.carregarProdutosGitHub = async function(){
-    try{
-      const cfg = (window.ghGet ? window.ghGet() : {}) || {};
-      const ownerRepo = (cfg.repo||'').trim();     // ex: user/repo
-      const branch = (cfg.branch||'main').trim();
-      const token = (cfg.token||'').trim();
-      const path = (cfg.productsPath||'products.json').replace(/^\/+/,''); // permite custom path
-
-      if(!ownerRepo){
-        // Sem config -> mantém lista local
-        if(!produtos) produtos = [];
-        return produtos;
-      }
-
-      let data = null;
-      // 1) Tenta RAW (mais simples e rápido)
-      try{
-        data = await fetchRaw(ownerRepo, branch, path);
-      }catch(_){
-        // 2) Fallback API Contents
-        try{
-          data = await fetchContentsAPI(ownerRepo, branch, path, token);
-        }catch(__){
-          data = null;
-        }
-      }
-
-      if(isArr(data)){
-        produtos = sanitize(data);
-      } else {
-        // se o arquivo não existe ainda, mantém array atual
-        if(!isArr(produtos)) produtos = [];
-      }
-      return produtos;
-    }catch(e){
-      if(!isArr(produtos)) produtos = [];
-      return produtos;
-    }
-  };
-
-  // Hidrata ao abrir a página, depois renderiza
-  document.addEventListener('DOMContentLoaded', async function(){
-    if(!isArr(produtos)) produtos = [];
-    try{ await window.carregarProdutosGitHub(); }catch(_){}
-    if(window.renderProdutos) window.renderProdutos();
-  });
-
-  // Exponha um helper manual para recarregar
-  window.reloadFromGitHub = async function(){
-    await window.carregarProdutosGitHub();
-    if(window.renderProdutos) window.renderProdutos();
-  };
-})();
-</script>
-
-
-<script>
-// Re-adiciona controle do modal de Configurações do GitHub
-function openGh(){
-  const m = document.getElementById('githubModal');
-  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-}
-function closeGh(){
-  const m = document.getElementById('githubModal');
-  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
-}
-document.addEventListener('click', function(e){
-  const modal = document.getElementById('githubModal');
-  if(!modal) return;
-  if(e.target === modal){ closeGh(); }
-});
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape'){ closeGh(); }
-});
-</script>
-
-
-  <!-- Modal: Editar Produto (isolado) -->
-  <div class="modal" id="editModal" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-content" role="document">
-      <button class="modal-close" onclick="closeEditModal()" aria-label="Fechar">&times;</button>
-      <h2 style="margin:0 0 10px">Editar Produto</h2>
-      <form id="editForm" onsubmit="return submitEditForm(event)">
-        <label>Título</label>
-        <input id="editTitulo" type="text" required />
-
-        <label>Preço</label>
-        <input id="editValor" type="number" step="0.01" required />
-
-        <label>Descrição</label>
-        <textarea id="editDescricao" rows="4"></textarea>
-
-        <label>Departamento</label>
-        <select id="editDepartamento" required>
-          <option value="">Selecione...</option>
-          <option value="marketplace">Marketplace</option>
-          <option value="servicos">Serviços e Comércios</option>
-          <option value="eventos">Eventos</option>
-        </select>
-
-        <label>Estoque</label>
-        <input id="editEstoque" type="number" min="0" />
-
-        <label>WhatsApp do dono</label>
-        <input id="editWhatsapp" type="text" placeholder="+353871234567 ou 0871234567" />
-
-        <div class="grid-two">
-          <div>
-            <label>Condado</label>
-            <select id="editCounty" required></select>
-          </div>
-          <div>
-            <label>Cidade / Área</label>
-            <select id="editCity" required disabled></select>
-            <input id="editCityCustom" type="text" style="display:none" placeholder="Digite a cidade" />
-          </div>
-        </div>
-
-        <label class="checkbox-line">
-          <input type="checkbox" id="editChangeImages" /> Alterar imagens
-        </label>
-        <div id="editImagesBlock" style="display:none">
-          <label for="editFotos" class="upload-btn">Selecionar imagens</label>
-          <input id="editFotos" type="file" accept="image/*" multiple style="display:none" />
-          <div id="editPreview" class="preview-container"></div>
-        </div>
-
-        <div id="editCurrentGallery" class="preview-container"></div>
-
-        <div class="actions">
-          <button type="button" class="action" onclick="closeEditModal()">Cancelar</button>
-          <button type="submit" class="action">Salvar Alterações</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-<script>
-// Robust modal handlers
-function openEditModal(){
-  const m = document.getElementById('editModal');
-  if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-}
-function closeEditModal(){
-  const m = document.getElementById('editModal');
-  if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
-}
-(function(){
-  const edit = document.getElementById('editModal');
-  if(edit){
-    edit.addEventListener('click', (e)=>{ if(e.target===edit) closeEditModal(); });
-  }
-})();
-</script>
 </body>
 </html>
