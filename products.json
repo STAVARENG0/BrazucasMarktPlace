@@ -183,5 +183,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762105554968",
+    "title": "CLENER ",
+    "description": "CHAMA TEMOS UMA EQUIPE ",
+    "department": "servicos",
+    "category": "",
+    "price": 10,
+    "stock": 0,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105554968/thumbnailimage-1.jpg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105554968/thumbnailimage-1.jpg"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762105556204,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
