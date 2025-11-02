@@ -237,5 +237,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762105866459",
+    "title": "PERFUME ",
+    "description": "PERFUME CHEIROSO ",
+    "department": "marketplace",
+    "category": "",
+    "price": 25,
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105866459/chatgpt-image-4-de-out-de-2025-17-20-27.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105866459/chatgpt-image-4-de-out-de-2025-17-20-27.png"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762105872736,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
