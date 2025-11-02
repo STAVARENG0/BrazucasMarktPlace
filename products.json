@@ -52,5 +52,21 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762101234366",
+    "title": "CREATINA EM CAPISULA ",
+    "description": "fwgwergreghegh",
+    "department": "servicos",
+    "category": "",
+    "price": 30,
+    "stock": 1,
+    "image": "",
+    "gallery": [],
+    "whatsapp": "353877954824",
+    "createdAt": 1762101234366,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
