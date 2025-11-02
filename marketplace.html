@@ -350,14 +350,15 @@
     <img src="logo.png" alt="Brazucas na Irlanda Marketplace" class="logo">
 
     <form class="search" onsubmit="event.preventDefault();">
-      <input type="search" placeholder="Buscar no site…" aria-label="Buscar" id="globalSearch"/>
+      <input type="search" placeholder="Buscar apenas no Marketplace…" aria-label="Buscar" id="globalSearch"/>
       <button type="submit" id="btnSearch">Buscar</button>
     </form>
 
     <nav class="btns" aria-label="Ações principais">
-      <a class="btn" href="marketplace.html">MARKETPLACE</a>
-      <a class="btn" href="servicos.html">SERVIÇOS E COMÉRCIOS</a>
-      <a class="btn" href="eventos.html">EVENTOS</a>
+      <a class="btn" href="./index.html">INÍCIO</a>
+<a class="btn" href="#marketplace">MARKETPLACE</a>
+      <a class="btn" href="#servicos">SERVIÇOS E COMÉRCIOS</a>
+      <a class="btn" href="#eventos">EVENTOS</a>
     </nav>
 
     <div class="divider" aria-hidden="true"></div>
@@ -365,11 +366,8 @@
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
 
-    <div class="page-header" style="text-align:center;margin:12px 0 6px 0;">
-      <h2 style="margin:0;font-size:22px;letter-spacing:.5px;">Marketplace</h2>
-      <div style="margin-top:8px;"><a href="index.html" class="btn" style="display:inline-block;text-decoration:none;">Home</a></div>
-    </div>
-    
+    <h2 class="section-title" style="text-align:center;font-weight:900;letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase;color:#66B3FF;">Marketplace</h2>
+
       
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
@@ -421,7 +419,7 @@
         image: p.image || 'logo.png',
         description: p.description || '',
         gallery: Array.isArray(p.gallery)? p.gallery : [],
-        category: p.category || p.department || '',
+        category: (p.category || p.department || '').toLowerCase(),
         createdAt: p.createdAt || 0,
         stock: (typeof p.stock === 'number') ? p.stock : parseInt(p.stock || '0', 10),
         whatsapp: p.whatsapp || '',
@@ -437,7 +435,8 @@
         if(!r.ok) throw new Error('HTTP '+r.status);
         const data = await r.json();
         BZ_PRODUCTS = sanitizeList(data)
-          .filter(p => p.status !== 'apagado'); // opcional
+          .filter(p => (p.status || 'publicado') !== 'apagado')
+          .filter(p => String(p.category || p.department || '').toLowerCase() === 'marketplace'); // opcional
         // Ordena mais novos primeiro
         BZ_PRODUCTS.sort(function(a,b){
           return (b.createdAt||0) - (a.createdAt||0);
@@ -458,12 +457,7 @@
       const term = (filterTerm||'').trim().toLowerCase();
       const arr = term
         ? BZ_PRODUCTS.filter(p=>{
-            const blob = (p.title+' '+p.description+' '+p.city+' '+p.county+' '+p.category).toLowerCase()
-      
-      .filter(p => {
-        const d = String(p.department||p.category||'').toLowerCase();
-        return d === 'marketplace';
-      });
+            const blob = (p.title+' '+p.description+' '+p.city+' '+p.county+' '+p.category).toLowerCase();
             return blob.includes(term);
           })
         : BZ_PRODUCTS;
