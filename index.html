@@ -355,21 +355,15 @@
     </form>
 
     <nav class="btns" aria-label="Ações principais">
-      <a class="btn" href="marketplace.html">MARKETPLACE</a>
-      <a class="btn" href="servicos.html">SERVIÇOS E COMÉRCIOS</a>
-      <a class="btn" href="eventos.html">EVENTOS</a>
+      <a class="btn" href="#marketplace">MARKETPLACE</a>
+      <a class="btn" href="#servicos">SERVIÇOS E COMÉRCIOS</a>
+      <a class="btn" href="#eventos">EVENTOS</a>
     </nav>
 
     <div class="divider" aria-hidden="true"></div>
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
-
-    <div class="page-header" style="text-align:center;margin:12px 0 6px 0;">
-      <h2 style="margin:0;font-size:22px;letter-spacing:.5px;">Mais recente</h2>
-      
-    </div>
-    
       
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
@@ -468,7 +462,7 @@
         return;
       }
 
-      arr.slice(0,1).forEach(prod=>{
+      arr.forEach(prod=>{
         const card = document.createElement('article');
         card.className = 'product-card';
         card.setAttribute('tabindex','0');
