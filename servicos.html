@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Brazucas na Irlanda • Marketplace</title>
+  <title>Brazucas na Irlanda • Serviços e Comércios</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -364,7 +364,7 @@
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
-      <h2>Mais recente</h2>
+      <h2>Serviços e Comércios</h2>
       
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
@@ -451,9 +451,13 @@
 
       // filtro de busca simples (título + descrição + cidade + condado)
       const term = (filterTerm||'').trim().toLowerCase();
-      const arr = term
+      const arr = (term
         ? BZ_PRODUCTS.filter(p=>{
             const blob = (p.title+' '+p.description+' '+p.city+' '+p.county+' '+p.category).toLowerCase();
+            return blob.includes(term);
+          })
+        : BZ_PRODUCTS)
+        .filter(p => String(p.category||'').toLowerCase() === 'servicos');
             return blob.includes(term);
           })
         : BZ_PRODUCTS;
@@ -463,7 +467,7 @@
         return;
       }
 
-      arr.slice(0,1).forEach(prod=>{
+      arr.forEach(prod=>{
         const card = document.createElement('article');
         card.className = 'product-card';
         card.setAttribute('tabindex','0');
