@@ -88,5 +88,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762104428195",
+    "title": "IPHONE 17",
+    "description": "VENHA CONFERIR",
+    "department": "marketplace",
+    "category": "",
+    "price": 2000,
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104428195/wqzwa-sq1-0000018175-cosmic-orange-slf.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104428195/wqzwa-sq1-0000018175-cosmic-orange-slf.jpeg"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762104429509,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
