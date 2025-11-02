@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Brazucas na Irlanda • Eventos</title>
+  <title>Brazucas na Irlanda • Serviços e Comércios</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -350,7 +350,7 @@
     <img src="logo.png" alt="Brazucas na Irlanda Marketplace" class="logo">
 
     <form class="search" onsubmit="event.preventDefault();">
-      <input type="search" placeholder="Buscar apenas em Eventos…" aria-label="Buscar" id="globalSearch"/>
+      <input type="search" placeholder="Buscar apenas em Serviços e Comércios…" aria-label="Buscar" id="globalSearch"/>
       <button type="submit" id="btnSearch">Buscar</button>
     </form>
 
@@ -365,7 +365,8 @@
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
-      <h2 class="section-title" style="text-align:center;font-weight:900;letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase;color:#66B3FF;">Eventos</h2>
+      
+      <h2 class="section-title" style="text-align:center;font-weight:900;letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase;color:#66B3FF;">Serviços e Comércios</h2>
 <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
   </main>
@@ -433,7 +434,12 @@
         const data = await r.json();
         BZ_PRODUCTS = sanitizeList(data)
           .filter(p => (p.status || 'publicado') !== 'apagado')
-          .filter(p => String(p.category || p.department || '').toLowerCase() === 'eventos'); // opcional
+          .filter(p => {
+            const c = String(p.category || p.department || '').toLowerCase();
+            return c === 'servicos' || c === 'serviços' ||
+                   c === 'servicos e comercios' || c === 'serviços e comércios' ||
+                   c === 'serviços e comercios' || c === 'servicos e comércios';
+          }); // opcional
         // Ordena mais novos primeiro
         BZ_PRODUCTS.sort(function(a,b){
           return (b.createdAt||0) - (a.createdAt||0);
