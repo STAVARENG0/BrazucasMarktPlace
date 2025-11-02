@@ -106,5 +106,28 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762104505690",
+    "title": "CARRO ",
+    "description": "SEMI NOVO ",
+    "department": "marketplace",
+    "category": "",
+    "price": 3000,
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-07-361ebce8.jpg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-07-361ebce8.jpg",
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-09-5bde5a8d.jpg",
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-09-6beab7e0.jpg",
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-09-8ea0e828.jpg",
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-09-ad123635.jpg",
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762104505690/imagem-do-whatsapp-de-2025-09-12-s-12-13-09-f822582a.jpg"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762104516171,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
