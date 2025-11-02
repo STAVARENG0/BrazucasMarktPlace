@@ -165,5 +165,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762105383819",
+    "title": "EVENTO DE FIM DE ANO ",
+    "description": "MELHOR FESTA DE VIRADA NA IRLANDA ",
+    "department": "eventos",
+    "category": "",
+    "price": 30,
+    "stock": 0,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105383819/13-de-dezembro-salve-essa-data-sera-o-dia-festa-de-fim-de-ano-do-sisejufe-13-de-dezembro-salve-essa-data-sera-o-dia-festa-de-fim-de-ano-do-sisejufe.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105383819/13-de-dezembro-salve-essa-data-sera-o-dia-festa-de-fim-de-ano-do-sisejufe-13-de-dezembro-salve-essa-data-sera-o-dia-festa-de-fim-de-ano-do-sisejufe.jpeg"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762105385608,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
