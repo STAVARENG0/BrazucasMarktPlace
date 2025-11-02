@@ -364,7 +364,12 @@
 
     <!-- LISTAGEM DE PRODUTOS -->
     <section id="productsSection">
-      <h2>Marketplace</h2>
+
+    <div class="page-header" style="text-align:center;margin:12px 0 6px 0;">
+      <h2 style="margin:0;font-size:22px;letter-spacing:.5px;">Marketplace</h2>
+      <div style="margin-top:8px;"><a href="index.html" class="btn" style="display:inline-block;text-decoration:none;">Home</a></div>
+    </div>
+    
       
       <div class="products-grid" id="productsList" aria-live="polite"></div>
     </section>
@@ -451,13 +456,14 @@
 
       // filtro de busca simples (título + descrição + cidade + condado)
       const term = (filterTerm||'').trim().toLowerCase();
-      const arr = (term
+      const arr = term
         ? BZ_PRODUCTS.filter(p=>{
-            const blob = (p.title+' '+p.description+' '+p.city+' '+p.county+' '+p.category).toLowerCase();
-            return blob.includes(term);
-          })
-        : BZ_PRODUCTS)
-        .filter(p => String(p.category||'').toLowerCase() === 'marketplace');
+            const blob = (p.title+' '+p.description+' '+p.city+' '+p.county+' '+p.category).toLowerCase()
+      
+      .filter(p => {
+        const d = String(p.department||p.category||'').toLowerCase();
+        return d === 'marketplace';
+      });
             return blob.includes(term);
           })
         : BZ_PRODUCTS;
