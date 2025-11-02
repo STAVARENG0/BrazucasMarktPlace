@@ -147,5 +147,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762105310020",
+    "title": "WORLD YAKISOBA",
+    "description": "O MELHOR YAKISOBA DO MUNDO ",
+    "department": "servicos",
+    "category": "",
+    "price": 0,
+    "stock": 0,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105310020/chatgpt-image-28-de-ago-de-2025-18-55-35.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762105310020/chatgpt-image-28-de-ago-de-2025-18-55-35.png"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762105314562,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
