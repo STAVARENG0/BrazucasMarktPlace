@@ -34,5 +34,23 @@
     "status": "publicado",
     "county": "Galway",
     "city": "Athenry"
+  },
+  {
+    "id": "1762101184627",
+    "title": "shorte",
+    "description": "ffsaffqwfw",
+    "department": "marketplace",
+    "category": "",
+    "price": 20,
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762101184627/gemini-generated-image-n7k61sn7k61sn7k6.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762101184627/gemini-generated-image-n7k61sn7k61sn7k6.png"
+    ],
+    "whatsapp": "353877954824",
+    "createdAt": 1762101188090,
+    "status": "publicado",
+    "county": "Galway",
+    "city": "Athenry"
   }
 ]
