@@ -1,21 +1,5 @@
 [
   {
-    "id": "1762103574417",
-    "title": "EVENTO DE HALLOWEEN",
-    "description": "MELHOR EVENTO DO ANO ",
-    "department": "eventos",
-    "category": "uncategorized",
-    "price": 35,
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/BrazucasMarktPlace/main/images/1762103574417/79c0314cde31a2446337d665c674b103.jpg",
-    "gallery": [],
-    "whatsapp": "353877954824",
-    "createdAt": 1762103575915,
-    "status": "publicado",
-    "county": "Galway",
-    "city": "Athenry"
-  },
-  {
     "id": "1762103932386",
     "title": "VITAGE CLOTHES SHOP",
     "description": "LOJA LOCALIZADA EM FRENTE AO MERCADO TESCO ",
